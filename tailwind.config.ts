@@ -57,6 +57,29 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        // Brechó da Vez custom colors
+        cream: "hsl(var(--cream))",
+        "warm-black": "hsl(var(--warm-black))",
+        copper: "hsl(var(--copper))",
+        "moss-green": "hsl(var(--moss-green))",
+        "warm-gray": "hsl(var(--warm-gray))",
+        // Status colors
+        available: "hsl(var(--available))",
+        reserved: "hsl(var(--reserved))",
+        sold: "hsl(var(--sold))",
+      },
+      fontFamily: {
+        display: ["var(--font-display)", "serif"],
+        body: ["var(--font-body)", "sans-serif"],
+      },
+      boxShadow: {
+        soft: "var(--shadow-soft)",
+        card: "var(--shadow-card)",
+        hover: "var(--shadow-hover)",
+      },
+      backgroundImage: {
+        "gradient-warm": "var(--gradient-warm)",
+        "gradient-copper": "var(--gradient-copper)",
       },
       borderRadius: {
         lg: "var(--radius)",
