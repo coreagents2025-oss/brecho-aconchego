@@ -26,7 +26,7 @@ export function generateWhatsAppLink(
   codigo: string,
   tamanho: string,
   productUrl: string,
-  phoneNumber: string = '5511999999999'
+  phoneNumber: string = import.meta.env.VITE_WA_NUMBER || '5541995299244'
 ): string {
   const message = `Olá! Eu amei a peça ${codigo} (tamanho ${tamanho}) 💛\nAinda está disponível?\nLink: ${productUrl}`;
   const encodedMessage = encodeURIComponent(message);
@@ -39,7 +39,7 @@ export function generateWhatsAppLink(
 export function generateInterestWhatsAppLink(
   codigo: string,
   tamanho: string,
-  phoneNumber: string = '5511999999999'
+  phoneNumber: string = import.meta.env.VITE_WA_NUMBER || '5541995299244'
 ): string {
   const message = `Oi! Gostaria de saber quando a peça ${codigo} (tamanho ${tamanho}) ficar disponível 🤍\nPode me avisar?`;
   const encodedMessage = encodeURIComponent(message);

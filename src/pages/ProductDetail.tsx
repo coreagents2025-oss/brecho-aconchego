@@ -7,18 +7,30 @@ import { ArrowLeft, Ruler, Tag, Calendar, Package } from 'lucide-react';
 import { ProductGallery } from '@/components/ProductGallery';
 import { StatusBadge } from '@/components/StatusBadge';
 import { WhatsAppButton } from '@/components/WhatsAppButton';
-import { mockProducts } from '@/data/mockProducts';
+import { useProducts } from '@/hooks/useProducts';
 import { formatPrice } from '@/utils/driveImage';
 
 export default function ProductDetail() {
   const { codigo } = useParams<{ codigo: string }>();
-  const product = mockProducts.find(p => p.codigo === codigo);
+  const { products, loading } = useProducts();
+  const product = products.find(p => p.codigo === codigo);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin h-8 w-8 border-2 border-accent border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="font-body text-muted-foreground">Carregando peça especial...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!product) {
     return <Navigate to="/404" replace />;
   }
 
-  const relatedProducts = mockProducts
+  const relatedProducts = products
     .filter(p => p.codigo !== product.codigo && p.categoria === product.categoria && p.status !== 'vendido')
     .slice(0, 3);
 
