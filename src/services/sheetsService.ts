@@ -117,13 +117,5 @@ export async function fetchProductsFromSheet(): Promise<Product[]> {
 }
 
 export async function fetchProducts(): Promise<Product[]> {
-  const products = await fetchProductsFromSheet();
-  
-  // Fallback para dados mock se a planilha estiver vazia (desenvolvimento)
-  if (products.length === 0 && import.meta.env.DEV) {
-    const { mockProducts } = await import('@/data/mockProducts');
-    return mockProducts;
-  }
-  
-  return products;
+  return await fetchProductsFromSheet();
 }

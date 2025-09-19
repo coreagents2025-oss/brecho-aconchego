@@ -128,6 +128,7 @@ A planilha deve ter estas colunas na **linha 1** (cabeçalhos):
 - [x] Status de produtos (disponível/reservado/vendido)
 - [x] Design aconchegante com cores e tipografia do brand
 - [x] Carregamento automático da planilha Google Sheets
+- [x] **MODO PRODUÇÃO ATIVO** - Dados mock removidos
 - [x] Imagens diretas do Google Drive
 - [x] Loading states e error handling
 - [x] SEO otimizado
