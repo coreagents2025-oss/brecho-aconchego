@@ -2,19 +2,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { StatusBadge } from './StatusBadge';
 import { WhatsAppButton } from './WhatsAppButton';
 import { Product } from '@/types/product';
-import { formatPrice } from '@/utils/driveImage';
+import { formatPrice, driveImageUrl } from '@/utils/driveImage';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-
-// Mock image mapping for demo
-const mockImages: Record<string, string> = {
-  'vintage-dress-1': '/src/assets/vintage-dress-1.jpg',
-  'denim-jacket-1': '/src/assets/denim-jacket-1.jpg',
-  'silk-blouse-1': '/src/assets/silk-blouse-1.jpg',
-  'pleated-skirt-1': '/placeholder.svg',
-  'knit-cardigan-1': '/placeholder.svg',
-  'wide-leg-pants-1': '/placeholder.svg',
-};
 
 interface ProductCardProps {
   product: Product;
@@ -22,7 +12,7 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, className }: ProductCardProps) {
-  const imageUrl = mockImages[product.galeria_file_ids[0]] || '/placeholder.svg';
+  const imageUrl = driveImageUrl(product.capa_file_id || product.galeria_file_ids[0]);
   
   return (
     <Card className={cn(
