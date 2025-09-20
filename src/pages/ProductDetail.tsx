@@ -8,7 +8,7 @@ import { ProductGallery } from '@/components/ProductGallery';
 import { StatusBadge } from '@/components/StatusBadge';
 import { WhatsAppButton } from '@/components/WhatsAppButton';
 import { useProducts } from '@/hooks/useProducts';
-import { formatPrice } from '@/utils/driveImage';
+
 
 export default function ProductDetail() {
   const { codigo } = useParams<{ codigo: string }>();
@@ -31,8 +31,22 @@ export default function ProductDetail() {
   }
 
   const relatedProducts = products
-    .filter(p => p.codigo !== product.codigo && p.categoria === product.categoria && p.status !== 'vendido')
+    .filter(p => p.codigo !== product.codigo && p.categoria === product.categoria && p.status === 'Disponível')
     .slice(0, 3);
+    
+  const galleryImages = [
+    product.url_capa,
+    product.url_galeria_1,
+    product.url_galeria_2,
+    product.url_galeria_3
+  ].filter(Boolean);
+  
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(price);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -63,7 +77,7 @@ export default function ProductDetail() {
           {/* Product Gallery */}
           <div>
             <ProductGallery
-              images={product.galeria_file_ids}
+              images={galleryImages}
               productName={product.nome}
             />
           </div>
@@ -129,11 +143,19 @@ export default function ProductDetail() {
                     </div>
                   )}
                   
-                  {product.material && (
+                  {product.tecido && (
                     <div className="flex items-center gap-3">
                       <Package className="w-4 h-4 text-muted-foreground" />
-                      <span className="font-body text-sm font-medium text-foreground">Material:</span>
-                      <span className="font-body text-sm text-muted-foreground">{product.material}</span>
+                      <span className="font-body text-sm font-medium text-foreground">Tecido:</span>
+                      <span className="font-body text-sm text-muted-foreground">{product.tecido}</span>
+                    </div>
+                  )}
+                  
+                  {product.cor && (
+                    <div className="flex items-center gap-3">
+                      <Package className="w-4 h-4 text-muted-foreground" />
+                      <span className="font-body text-sm font-medium text-foreground">Cor:</span>
+                      <span className="font-body text-sm text-muted-foreground">{product.cor}</span>
                     </div>
                   )}
 
@@ -150,13 +172,13 @@ export default function ProductDetail() {
                   </div>
                 </div>
 
-                {product.tags.length > 0 && (
+                {product.tag && product.tag.length > 0 && (
                   <div className="pt-4 border-t border-border">
                     <span className="font-body text-sm font-medium text-foreground block mb-2">
                       Tags:
                     </span>
                     <div className="flex flex-wrap gap-2">
-                      {product.tags.map((tag) => (
+                      {product.tag.map((tag) => (
                         <Badge key={tag} variant="outline" className="font-body text-xs">
                           {tag}
                         </Badge>
@@ -168,7 +190,7 @@ export default function ProductDetail() {
             </Card>
 
             {/* Special Messages */}
-            {product.status === 'reservado' && (
+            {product.status === 'Reservado' && (
               <Card className="border-reserved bg-reserved/5">
                 <CardContent className="p-4">
                   <p className="font-body text-sm text-reserved font-medium">
@@ -179,7 +201,7 @@ export default function ProductDetail() {
               </Card>
             )}
 
-            {product.status === 'vendido' && (
+            {product.status === 'Vendido' && (
               <Card className="border-sold bg-sold/5">
                 <CardContent className="p-4">
                   <p className="font-body text-sm text-sold font-medium">
@@ -210,7 +232,7 @@ export default function ProductDetail() {
                   <Link to={`/p/${relatedProduct.codigo}`}>
                     <div className="aspect-[3/4] relative overflow-hidden bg-muted">
                       <img
-                        src="/placeholder.svg"
+                        src={relatedProduct.url_capa || '/placeholder.svg'}
                         alt={relatedProduct.nome}
                         className="w-full h-full object-cover"
                       />

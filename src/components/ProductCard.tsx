@@ -2,7 +2,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { StatusBadge } from './StatusBadge';
 import { WhatsAppButton } from './WhatsAppButton';
 import { Product } from '@/types/product';
-import { formatPrice, driveImageUrl } from '@/utils/driveImage';
+
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
@@ -12,7 +12,14 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, className }: ProductCardProps) {
-  const imageUrl = driveImageUrl(product.capa_file_id || product.galeria_file_ids[0]);
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(price);
+  };
+  
+  const imageUrl = product.url_capa || '/placeholder.svg';
   
   return (
     <Card className={cn(

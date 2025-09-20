@@ -7,17 +7,17 @@ interface StatusBadgeProps {
 }
 
 const statusConfig = {
-  disponivel: {
+  'Disponível': {
     label: 'Disponível',
     className: 'bg-available text-white',
     icon: '✨'
   },
-  reservado: {
+  'Reservado': {
     label: 'Reservado com carinho',
     className: 'bg-reserved text-white',
     icon: '🤍'
   },
-  vendido: {
+  'Vendido': {
     label: 'Novo lar encontrado',
     className: 'bg-sold text-white',
     icon: '💛'

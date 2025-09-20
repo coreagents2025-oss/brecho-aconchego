@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { driveImageUrl } from '@/utils/driveImage';
 
 interface ProductGalleryProps {
   images: string[];
@@ -13,7 +12,7 @@ interface ProductGalleryProps {
 export function ProductGallery({ images, productName, className }: ProductGalleryProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   
-  const imageUrls = images.map(id => driveImageUrl(id));
+  const imageUrls = images.filter(Boolean);
   const hasMultipleImages = imageUrls.length > 1;
 
   const goToPrevious = () => {

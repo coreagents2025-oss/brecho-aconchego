@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { MessageCircle, Heart } from 'lucide-react';
-import { generateWhatsAppLink, generateInterestWhatsAppLink } from '@/utils/driveImage';
+import { generateWhatsAppLink, generateInterestWhatsAppLink } from '@/utils/whatsapp';
 import { ProductStatus } from '@/types/product';
 import { cn } from '@/lib/utils';
 
@@ -21,9 +21,9 @@ export function WhatsAppButton({
   className,
   size = 'default'
 }: WhatsAppButtonProps) {
-  const isAvailable = status === 'disponivel';
-  const isReserved = status === 'reservado';
-  const isSold = status === 'vendido';
+  const isAvailable = status === 'Disponível';
+  const isReserved = status === 'Reservado';
+  const isSold = status === 'Vendido';
 
   const handleClick = () => {
     let link: string;

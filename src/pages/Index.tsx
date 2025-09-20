@@ -17,7 +17,7 @@ export default function Index() {
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
       // Hide sold items by default unless explicitly shown
-      if (!showSoldItems && product.status === 'vendido') return false;
+      if (!showSoldItems && product.status === 'Vendido') return false;
 
       // Search query filter
       if (searchQuery) {
@@ -26,7 +26,7 @@ export default function Index() {
           product.nome.toLowerCase().includes(query) ||
           product.codigo.toLowerCase().includes(query) ||
           product.descricao.toLowerCase().includes(query) ||
-          product.tags.some(tag => tag.toLowerCase().includes(query)) ||
+          (product.tag && product.tag.some(tag => tag.toLowerCase().includes(query))) ||
           (product.marca && product.marca.toLowerCase().includes(query));
         if (!matchesSearch) return false;
       }

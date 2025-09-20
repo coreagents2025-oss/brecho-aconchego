@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Search, Filter, X } from 'lucide-react';
-import { categories, sizes } from '@/data/mockProducts';
+import { categories, sizes } from '@/data/mockData';
 import { ProductStatus } from '@/types/product';
 
 interface FiltersBarProps {
@@ -141,9 +141,9 @@ export function FiltersBar({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos os status</SelectItem>
-                <SelectItem value="disponivel">Disponível</SelectItem>
-                <SelectItem value="reservado">Reservado</SelectItem>
-                <SelectItem value="vendido">Vendido</SelectItem>
+                <SelectItem value="Disponível">Disponível</SelectItem>
+                <SelectItem value="Reservado">Reservado</SelectItem>
+                <SelectItem value="Vendido">Vendido</SelectItem>
               </SelectContent>
             </Select>
           </div>
