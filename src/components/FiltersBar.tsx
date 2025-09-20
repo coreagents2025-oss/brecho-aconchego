@@ -42,6 +42,7 @@ export function FiltersBar({
     onCategoryChange('all');
     onSizeChange('all');
     onStatusChange('all');
+    onShowSoldChange(true);
   };
 
   return (

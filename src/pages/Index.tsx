@@ -12,11 +12,11 @@ export default function Index() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedSize, setSelectedSize] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState<ProductStatus | 'all'>('all');
-  const [showSoldItems, setShowSoldItems] = useState(false);
+  const [showSoldItems, setShowSoldItems] = useState(true);
 
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
-      // Hide sold items by default unless explicitly shown
+      // Show/hide sold items based on toggle
       if (!showSoldItems && product.status === 'Vendido') return false;
 
       // Search query filter
@@ -173,6 +173,7 @@ export default function Index() {
                   setSelectedCategory('all');
                   setSelectedSize('all');
                   setSelectedStatus('all');
+                  setShowSoldItems(true);
                 }}
                 className="font-body"
               >

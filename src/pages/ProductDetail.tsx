@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useParams, Link, Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -14,6 +15,11 @@ export default function ProductDetail() {
   const { codigo } = useParams<{ codigo: string }>();
   const { products, loading } = useProducts();
   const product = products.find(p => p.codigo === codigo);
+
+  // Scroll to top when product changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [codigo]);
 
   if (loading) {
     return (
