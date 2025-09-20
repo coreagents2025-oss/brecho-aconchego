@@ -5,13 +5,15 @@ const CATALOG_CSV_URL = 'https://fotos.brechodavez.com.br/public/catalogo_urls.c
 
 async function fetchProductsFromJSON(): Promise<Product[]> {
   try {
+    console.log('Tentando carregar produtos de:', CATALOG_JSON_URL);
     const response = await fetch(CATALOG_JSON_URL);
     
     if (!response.ok) {
-      throw new Error(`Erro HTTP: ${response.status}`);
+      throw new Error(`Erro HTTP: ${response.status} - ${response.statusText}`);
     }
 
     const data = await response.json();
+    console.log('Produtos carregados do JSON:', data.length);
     
     // Transformar os dados para o formato esperado
     return data.map((item: any) => ({
@@ -135,8 +137,10 @@ export async function fetchProducts(): Promise<Product[]> {
     try {
       return await fetchProductsFromCSV();
     } catch (csvError) {
-      console.error('Falha ao carregar CSV também:', csvError);
-      return [];
+      console.error('Falha ao carregar CSV também, usando dados de exemplo:', csvError);
+      // Fallback para dados mockados durante desenvolvimento
+      const { mockProducts } = await import('@/data/mockData');
+      return mockProducts;
     }
   }
 }

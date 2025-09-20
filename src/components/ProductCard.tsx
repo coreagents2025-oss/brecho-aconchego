@@ -19,7 +19,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
     }).format(price);
   };
   
-  const imageUrl = product.url_capa || '/placeholder.svg';
+  const imageUrl = product.url_capa;
   
   return (
     <Card className={cn(
@@ -28,11 +28,20 @@ export function ProductCard({ product, className }: ProductCardProps) {
     )}>
       <Link to={`/p/${product.codigo}`} className="block">
         <div className="aspect-[3/4] relative overflow-hidden bg-muted">
-          <img
-            src={imageUrl}
-            alt={product.nome}
-            className="w-full h-full object-cover group-hover:scale-105 transition-smooth"
-          />
+          {imageUrl ? (
+            <img
+              src={imageUrl}
+              alt={product.nome}
+              className="w-full h-full object-cover group-hover:scale-105 transition-smooth"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-muted text-muted-foreground">
+              <span className="text-sm">Sem imagem</span>
+            </div>
+          )}
           <div className="absolute top-3 right-3">
             <StatusBadge status={product.status} />
           </div>

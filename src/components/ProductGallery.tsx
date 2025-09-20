@@ -14,6 +14,17 @@ export function ProductGallery({ images, productName, className }: ProductGaller
   
   const imageUrls = images.filter(Boolean);
   const hasMultipleImages = imageUrls.length > 1;
+  
+  // Se não há imagens, não renderiza nada
+  if (imageUrls.length === 0) {
+    return (
+      <div className={cn('space-y-4', className)}>
+        <div className="relative aspect-[3/4] bg-muted rounded-2xl overflow-hidden flex items-center justify-center">
+          <span className="text-muted-foreground">Sem imagens disponíveis</span>
+        </div>
+      </div>
+    );
+  }
 
   const goToPrevious = () => {
     setCurrentImageIndex((prevIndex) =>
@@ -35,6 +46,10 @@ export function ProductGallery({ images, productName, className }: ProductGaller
           src={imageUrls[currentImageIndex]}
           alt={`${productName} - Imagem ${currentImageIndex + 1}`}
           className="w-full h-full object-cover"
+          onError={(e) => {
+            console.warn('Erro ao carregar imagem:', imageUrls[currentImageIndex]);
+            e.currentTarget.style.display = 'none';
+          }}
         />
         
         {/* Navigation Arrows */}
@@ -85,6 +100,9 @@ export function ProductGallery({ images, productName, className }: ProductGaller
                 src={url}
                 alt={`${productName} - Miniatura ${index + 1}`}
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
               />
             </button>
           ))}
