@@ -16,7 +16,7 @@ export default function Index() {
 
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
-      // Show/hide sold items based on toggle
+      // Show/hide sold items based on toggle - when showSoldItems is false, hide sold items
       if (!showSoldItems && product.status === 'Vendido') return false;
 
       // Search query filter
