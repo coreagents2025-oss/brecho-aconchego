@@ -14,8 +14,9 @@ export const categories = [
 ];
 
 export const sizes = [
-  'PP', 'P', 'M', 'G', 'GG',
-  '34', '36', '38', '40', '42', '44', '46'
+  'PP', 'P', 'M', 'G', 'GG', 'P/M',
+  '34', '36', '38', '40', '42', '44', '46',
+  'P (veste M)'
 ];
 
 export const mockProducts: Product[] = [

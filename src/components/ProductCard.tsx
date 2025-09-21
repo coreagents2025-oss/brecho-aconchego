@@ -42,11 +42,11 @@ export function ProductCard({ product, className }: ProductCardProps) {
               <span className="text-sm">Sem imagem</span>
             </div>
           )}
-          <div className="absolute top-3 right-3">
+          <div className="absolute top-3 left-3">
             <StatusBadge status={product.status} />
           </div>
           {product.marca && (
-            <div className="absolute bottom-3 left-3">
+            <div className="absolute bottom-3 right-3">
               <span className="bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-body font-medium text-warm-black">
                 {product.marca}
               </span>
