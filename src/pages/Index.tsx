@@ -42,7 +42,7 @@ export default function Index() {
 
       return true;
     });
-  }, [searchQuery, selectedCategory, selectedSize, selectedStatus, showSoldItems]);
+  }, [products, searchQuery, selectedCategory, selectedSize, selectedStatus, showSoldItems]);
 
   return (
     <div className="min-h-screen bg-background">
