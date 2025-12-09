@@ -31,9 +31,9 @@ async function fetchProductsFromJSON(): Promise<Product[]> {
       condicao: item.condicao || 'Usado',
       status: item.status || 'Disponível',
       url_capa: item.url_capa || '',
-      url_galeria_1: item.url_galeria_1 || '',
-      url_galeria_2: item.url_galeria_2 || '',
-      url_galeria_3: item.url_galeria_3 || '',
+      url_galeria_1: item.galeria?.[0] || '',
+      url_galeria_2: item.galeria?.[1] || '',
+      url_galeria_3: item.galeria?.[2] || '',
     }));
   } catch (error) {
     console.error('Erro ao carregar produtos do JSON:', error);
