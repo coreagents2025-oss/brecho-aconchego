@@ -45,12 +45,15 @@ export default function ProductDetail() {
     .filter(p => p.codigo !== product.codigo && p.categoria === product.categoria && p.status === 'Disponível')
     .slice(0, 3);
     
-  const galleryImages = [
+  const realImages = [
     product.url_capa,
     product.url_galeria_1,
     product.url_galeria_2,
-    product.url_galeria_3
-  ].filter(Boolean);
+    product.url_galeria_3,
+  ].filter(Boolean) as string[];
+
+  const needed = Math.max(0, 4 - realImages.length);
+  const galleryImages = [...realImages, ...FALLBACK_GALLERY.slice(0, needed)];
   
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('pt-BR', {
