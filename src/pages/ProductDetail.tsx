@@ -92,6 +92,7 @@ export default function ProductDetail() {
           <div>
             <ProductGallery
               images={galleryImages}
+              videoUrl={product.url_video}
               productName={product.nome}
             />
           </div>
