@@ -114,6 +114,7 @@ async function fetchProductsFromCSV(): Promise<Product[]> {
           url_galeria_1: rawData.url_galeria_1 || '',
           url_galeria_2: rawData.url_galeria_2 || '',
           url_galeria_3: rawData.url_galeria_3 || '',
+          url_video: rawData.url_video || '',
         };
 
         products.push(product);
