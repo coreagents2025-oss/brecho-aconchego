@@ -9,6 +9,11 @@ import { ProductGallery } from '@/components/ProductGallery';
 import { StatusBadge } from '@/components/StatusBadge';
 import { WhatsAppButton } from '@/components/WhatsAppButton';
 import { useProducts } from '@/hooks/useProducts';
+import mockup1 from '@/assets/mockup-1.jpg';
+import mockup2 from '@/assets/mockup-2.jpg';
+import mockup3 from '@/assets/mockup-3.jpg';
+
+const FALLBACK_GALLERY = [mockup1, mockup2, mockup3];
 
 
 export default function ProductDetail() {
@@ -40,12 +45,15 @@ export default function ProductDetail() {
     .filter(p => p.codigo !== product.codigo && p.categoria === product.categoria && p.status === 'Disponível')
     .slice(0, 3);
     
-  const galleryImages = [
+  const realImages = [
     product.url_capa,
     product.url_galeria_1,
     product.url_galeria_2,
-    product.url_galeria_3
-  ].filter(Boolean);
+    product.url_galeria_3,
+  ].filter(Boolean) as string[];
+
+  const needed = Math.max(0, 4 - realImages.length);
+  const galleryImages = [...realImages, ...FALLBACK_GALLERY.slice(0, needed)];
   
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -84,6 +92,7 @@ export default function ProductDetail() {
           <div>
             <ProductGallery
               images={galleryImages}
+              videoUrl={product.url_video}
               productName={product.nome}
             />
           </div>
