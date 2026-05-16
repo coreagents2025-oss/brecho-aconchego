@@ -1,6 +1,36 @@
 import { Product } from '@/types/product';
+import { supabase } from '@/integrations/supabase/client';
 
 const CATALOG_JSON_URL = 'https://fotos.brechodavez.com.br/public/catalogo.json';
+
+async function fetchProductsFromCloud(): Promise<Product[]> {
+  const { data, error } = await supabase
+    .from('products')
+    .select('*')
+    .order('updated_at', { ascending: false });
+  if (error) throw error;
+  if (!data || data.length === 0) throw new Error('Nenhum produto no banco');
+  return data.map((item: any) => ({
+    codigo: item.codigo,
+    categoria: item.categoria || 'Outros',
+    nome: item.nome,
+    descricao: item.descricao || '',
+    marca: item.marca || '',
+    tecido: item.tecido || '',
+    medidas: item.medidas || '',
+    cor: item.cor || '',
+    tamanho: item.tamanho || 'Único',
+    tag: Array.isArray(item.tag) ? item.tag : [],
+    preco_brl: parseFloat(item.preco_brl) || 0,
+    condicao: item.condicao || 'Usado',
+    status: item.status || 'Disponível',
+    url_capa: item.url_capa || '',
+    url_galeria_1: item.url_galeria_1 || '',
+    url_galeria_2: item.url_galeria_2 || '',
+    url_galeria_3: item.url_galeria_3 || '',
+    url_video: item.url_video || '',
+  }));
+}
 const CATALOG_CSV_URL = 'https://fotos.brechodavez.com.br/public/catalogo_urls.csv';
 
 async function fetchProductsFromJSON(): Promise<Product[]> {
@@ -132,17 +162,19 @@ async function fetchProductsFromCSV(): Promise<Product[]> {
 
 export async function fetchProducts(): Promise<Product[]> {
   try {
-    // Tenta JSON primeiro, depois CSV como fallback
-    return await fetchProductsFromJSON();
-  } catch (error) {
-    console.warn('Falha ao carregar JSON, tentando CSV:', error);
+    return await fetchProductsFromCloud();
+  } catch (cloudError) {
+    console.warn('Cloud vazio/indisponível, tentando JSON do VPS:', cloudError);
     try {
-      return await fetchProductsFromCSV();
-    } catch (csvError) {
-      console.error('Falha ao carregar CSV também, usando dados de exemplo:', csvError);
-      // Fallback para dados mockados durante desenvolvimento
-      const { mockProducts } = await import('@/data/mockData');
-      return mockProducts;
+      return await fetchProductsFromJSON();
+    } catch (jsonError) {
+      console.warn('JSON falhou, tentando CSV:', jsonError);
+      try {
+        return await fetchProductsFromCSV();
+      } catch {
+        const { mockProducts } = await import('@/data/mockData');
+        return mockProducts;
+      }
     }
   }
 }

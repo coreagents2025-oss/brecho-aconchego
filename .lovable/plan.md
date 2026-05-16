@@ -1,38 +1,87 @@
-## O que vai mudar
 
-### 1. Mockups nas galerias
-Hoje, quando um produto não tem `url_galeria_1/2/3`, a galeria fica vazia ou mostra só a capa. Vou adicionar **imagens mockup hardcoded** que entram automaticamente nos slots vazios da galeria, garantindo que toda peça tenha uma galeria visualmente completa (4 slots).
+# Painel admin do Brechó da Vez
 
-- Crio 3 imagens mockup decorativas no estilo da marca (creme + cobre/musgo, ex: textura de tecido, etiqueta, fundo aconchegante) em `src/assets/`.
-- No `ProductDetail.tsx`, ao montar `galleryImages`, preencho os slots faltantes com os mockups na ordem.
-- Os mockups aparecem **só na galeria da página de produto** (ProductGallery). O `ProductCard` continua mostrando só a capa real (sem mockup), porque mockup em card de listagem polui a navegação.
+Criar uma área administrativa protegida por login para você cadastrar, editar e excluir produtos com upload de fotos direto pelo navegador.
 
-> Obs.: você respondeu "em todas as fotos do site", mas faz mais sentido aplicar só nas galerias do detalhe — colocar mockup nos cards do catálogo faria parecer que existem peças que não existem. Se preferir aplicar nos cards também, me avise.
+## 1. Banco de dados (Lovable Cloud)
 
-### 2. Vídeo na galeria (embed YouTube/Instagram)
-- Adiciono campo opcional `url_video` no tipo `Product` e no parser do `sheetsService.ts` (lendo do JSON).
-- Na galeria, se o produto tem `url_video`, ele entra como **mais um item** (após as fotos), exibindo:
-  - Thumbnail (capa do produto com overlay escuro + ícone de Play grande no centro).
-  - Ao clicar, o slot principal troca da imagem para um `<iframe>` do YouTube/Instagram embed.
-  - Detecção automática da plataforma pela URL (youtube.com, youtu.be, instagram.com/reel|p).
-- Thumbnail também aparece na faixa de miniaturas com um ícone de play sobreposto, para diferenciar de fotos.
+Criar tabela `products` espelhando o schema atual do `catalogo.json`:
 
-### 3. JSON / catálogo
-Adicionar `url_video` é opcional — produtos antigos sem o campo continuam funcionando normalmente. Você só precisa incluir `"url_video": "https://..."` no `catalogo.json` quando quiser.
+- codigo (único), categoria, nome, descricao, marca, tecido, medidas, cor, tamanho
+- tag (array de texto)
+- preco_brl (numérico)
+- condicao, status (Disponível / Vendido / Reservado)
+- url_capa, url_galeria_1, url_galeria_2, url_galeria_3, url_video
+- created_at, updated_at
+
+Tabela `user_roles` com enum `app_role` ('admin', 'user') e função `has_role()` security definer (padrão seguro, evita recursão em RLS).
+
+**Políticas RLS:**
+- Leitura pública dos produtos (catálogo continua aberto a todos)
+- Apenas admins podem inserir, atualizar ou excluir
+- `user_roles`: apenas admins gerenciam
+
+## 2. Storage de fotos
+
+Bucket público `product-images` no Lovable Cloud.
+- Leitura pública (para o site mostrar as fotos)
+- Upload/delete restrito a admins
+- Organização: `{codigo}/capa.jpg`, `{codigo}/galeria-1.jpg`, etc.
+
+## 3. Autenticação
+
+- Login por email/senha (sem confirmação de email, para você entrar direto)
+- Criar seu usuário admin: **duffrayermauro@gmail.com** com a senha informada
+- Atribuir role `admin` automaticamente a esse usuário
+- Página `/auth` simples com formulário de login
+- Página `/admin` protegida — redireciona pra `/auth` se não estiver logado ou se não for admin
+
+## 4. Importação do catálogo atual
+
+Edge function `import-catalog` que:
+1. Busca `https://fotos.brechodavez.com.br/public/catalogo.json`
+2. Insere todos os produtos na tabela `products`
+3. Mantém as URLs originais das fotos do VPS (não baixa as imagens — fica mais rápido e elas continuam funcionando)
+
+Botão "Importar catálogo do VPS" no painel admin dispara essa função. Pode rodar uma vez para popular tudo. Produtos novos cadastrados depois vão pro storage do Lovable.
+
+## 5. Painel admin (`/admin`)
+
+**Lista de produtos** — tabela com busca, filtro por status, ações editar/excluir.
+
+**Formulário de cadastro/edição** com todos os campos do produto e área de upload:
+- Capa (1 foto)
+- Galeria (até 3 fotos)
+- Vídeo (URL YouTube/Instagram)
+- Drag-and-drop ou clique para selecionar
+- Preview das imagens antes de salvar
+- Ao salvar: faz upload pro bucket e grava a URL pública no produto
+
+**Ações rápidas na lista**: marcar como Vendido / Reservado / Disponível com um clique.
+
+## 6. Site público
+
+Atualizar `sheetsService.ts` para buscar produtos da tabela `products` do Cloud em vez do JSON do VPS. Todo o restante do site (cards, detalhe, WhatsApp) continua igual — só muda a fonte dos dados.
+
+Manter o fallback pro JSON do VPS caso o Cloud esteja indisponível.
 
 ## Arquivos afetados
 
-- `src/types/product.ts` — adicionar `url_video?: string`
-- `src/services/sheetsService.ts` — mapear `item.url_video`
-- `src/assets/mockup-1.jpg`, `mockup-2.jpg`, `mockup-3.jpg` — gerar 3 imagens decorativas (premium quality)
-- `src/components/ProductGallery.tsx` — aceitar `videoUrl?`, renderizar item de vídeo com play overlay, trocar para iframe quando selecionado, helper para extrair embed URL do YouTube/Instagram
-- `src/pages/ProductDetail.tsx` — preencher slots vazios com mockups, passar `videoUrl` para `ProductGallery`
+- Migração SQL: tabelas `products`, `user_roles`, enum, função `has_role`, políticas RLS, bucket de storage
+- `src/pages/Auth.tsx` (novo) — tela de login
+- `src/pages/Admin.tsx` (novo) — painel
+- `src/components/admin/ProductForm.tsx` (novo)
+- `src/components/admin/ProductTable.tsx` (novo)
+- `src/components/admin/ImageUploader.tsx` (novo)
+- `src/hooks/useAuth.ts` (novo)
+- `supabase/functions/import-catalog/index.ts` (novo) — edge function
+- `src/services/sheetsService.ts` — passa a ler do Cloud
+- `src/App.tsx` — rotas `/auth` e `/admin`
 
-## Detalhes técnicos
+## Fluxo após implantação
 
-- Helper `getEmbedUrl(url)` reconhece:
-  - `youtube.com/watch?v=ID` → `youtube.com/embed/ID`
-  - `youtu.be/ID` → `youtube.com/embed/ID`
-  - `instagram.com/reel/ID` ou `/p/ID` → `instagram.com/reel/ID/embed`
-- Mockups: `import mockup1 from '@/assets/mockup-1.jpg'` etc., em uma constante `FALLBACK_GALLERY = [mockup1, mockup2, mockup3]`.
-- Slot do vídeo no array da galeria marcado como `{ type: 'video', url }` vs `{ type: 'image', url }` para o componente saber o que renderizar.
+1. Você acessa `/auth`, loga com seu email/senha
+2. Entra no `/admin`, clica "Importar catálogo do VPS" → todos os produtos atuais aparecem
+3. Daí em diante: cadastra novos produtos pelo formulário com upload direto
+4. Edita status (vendido/reservado) com um clique
+5. Site público mostra automaticamente as mudanças
