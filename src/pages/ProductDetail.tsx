@@ -9,6 +9,11 @@ import { ProductGallery } from '@/components/ProductGallery';
 import { StatusBadge } from '@/components/StatusBadge';
 import { WhatsAppButton } from '@/components/WhatsAppButton';
 import { useProducts } from '@/hooks/useProducts';
+import mockup1 from '@/assets/mockup-1.jpg';
+import mockup2 from '@/assets/mockup-2.jpg';
+import mockup3 from '@/assets/mockup-3.jpg';
+
+const FALLBACK_GALLERY = [mockup1, mockup2, mockup3];
 
 
 export default function ProductDetail() {
