@@ -16,6 +16,7 @@ export interface Product {
   url_galeria_1?: string;
   url_galeria_2?: string;
   url_galeria_3?: string;
+  url_video?: string;
 }
 
 export type ProductStatus = Product['status'];
