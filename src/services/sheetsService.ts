@@ -162,17 +162,19 @@ async function fetchProductsFromCSV(): Promise<Product[]> {
 
 export async function fetchProducts(): Promise<Product[]> {
   try {
-    // Tenta JSON primeiro, depois CSV como fallback
-    return await fetchProductsFromJSON();
-  } catch (error) {
-    console.warn('Falha ao carregar JSON, tentando CSV:', error);
+    return await fetchProductsFromCloud();
+  } catch (cloudError) {
+    console.warn('Cloud vazio/indisponível, tentando JSON do VPS:', cloudError);
     try {
-      return await fetchProductsFromCSV();
-    } catch (csvError) {
-      console.error('Falha ao carregar CSV também, usando dados de exemplo:', csvError);
-      // Fallback para dados mockados durante desenvolvimento
-      const { mockProducts } = await import('@/data/mockData');
-      return mockProducts;
+      return await fetchProductsFromJSON();
+    } catch (jsonError) {
+      console.warn('JSON falhou, tentando CSV:', jsonError);
+      try {
+        return await fetchProductsFromCSV();
+      } catch {
+        const { mockProducts } = await import('@/data/mockData');
+        return mockProducts;
+      }
     }
   }
 }
