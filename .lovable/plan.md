@@ -1,87 +1,107 @@
 
-# Painel admin do Brechó da Vez
+# Painel admin: melhorias práticas
 
-Criar uma área administrativa protegida por login para você cadastrar, editar e excluir produtos com upload de fotos direto pelo navegador.
+Manter a base atual (lista + formulário) e adicionar 5 frentes objetivas, sem inflar a UI.
 
-## 1. Banco de dados (Lovable Cloud)
+## 1. Dashboard de métricas (topo do /admin)
 
-Criar tabela `products` espelhando o schema atual do `catalogo.json`:
+Faixa de cards compactos acima da lista, com dados calculados em tempo real da tabela `products` e `sales`:
 
-- codigo (único), categoria, nome, descricao, marca, tecido, medidas, cor, tamanho
-- tag (array de texto)
-- preco_brl (numérico)
-- condicao, status (Disponível / Vendido / Reservado)
-- url_capa, url_galeria_1, url_galeria_2, url_galeria_3, url_video
-- created_at, updated_at
+- Total de peças cadastradas
+- Disponíveis / Reservadas / Vendidas (3 contadores)
+- Valor do estoque disponível (soma de `preco_brl` onde status = Disponível)
+- Vendas do mês (qtde + R$ faturado, da tabela `sales`)
+- Ticket médio do mês
 
-Tabela `user_roles` com enum `app_role` ('admin', 'user') e função `has_role()` security definer (padrão seguro, evita recursão em RLS).
+Layout: grid responsivo de cards `rounded-2xl` em creme, ícones lucide, números grandes em Cormorant. Recolhível em mobile.
 
-**Políticas RLS:**
-- Leitura pública dos produtos (catálogo continua aberto a todos)
-- Apenas admins podem inserir, atualizar ou excluir
-- `user_roles`: apenas admins gerenciam
+## 2. Registro de vendas
 
-## 2. Storage de fotos
+Nova tabela `sales` no banco para guardar histórico completo:
 
-Bucket público `product-images` no Lovable Cloud.
-- Leitura pública (para o site mostrar as fotos)
-- Upload/delete restrito a admins
-- Organização: `{codigo}/capa.jpg`, `{codigo}/galeria-1.jpg`, etc.
+- referência ao produto (codigo)
+- data da venda
+- canal: WhatsApp / Instagram / Presencial / Outro
+- valor final (pode diferir do preço de tabela — desconto)
+- nome do comprador (opcional)
+- contato do comprador (opcional)
+- observações
 
-## 3. Autenticação
+**Fluxo:** quando o admin muda status para "Vendido" (na lista ou no form), abre modal pedindo esses dados antes de confirmar. Cancelar = não muda o status. Confirmar = grava venda + atualiza produto.
 
-- Login por email/senha (sem confirmação de email, para você entrar direto)
-- Criar seu usuário admin: **duffrayermauro@gmail.com** com a senha informada
-- Atribuir role `admin` automaticamente a esse usuário
-- Página `/auth` simples com formulário de login
-- Página `/admin` protegida — redireciona pra `/auth` se não estiver logado ou se não for admin
+Aba/seção "Vendas" no painel mostra histórico em tabela com filtro por mês, busca por código/comprador, e botão para editar/excluir um registro (caso de erro).
 
-## 4. Importação do catálogo atual
+Reverter "Vendido → Disponível" pergunta se quer apagar o registro de venda correspondente.
 
-Edge function `import-catalog` que:
-1. Busca `https://fotos.brechodavez.com.br/public/catalogo.json`
-2. Insere todos os produtos na tabela `products`
-3. Mantém as URLs originais das fotos do VPS (não baixa as imagens — fica mais rápido e elas continuam funcionando)
+## 3. Ações em massa
 
-Botão "Importar catálogo do VPS" no painel admin dispara essa função. Pode rodar uma vez para popular tudo. Produtos novos cadastrados depois vão pro storage do Lovable.
+Checkbox na primeira coluna da lista + checkbox no header (selecionar todos da página).
 
-## 5. Painel admin (`/admin`)
+Barra flutuante aparece quando há seleção, com:
 
-**Lista de produtos** — tabela com busca, filtro por status, ações editar/excluir.
+- Mudar status (Disponível / Reservado / Vendido) — se Vendido, abre modal de venda por item
+- Excluir selecionados (confirmação)
+- Duplicar selecionados
 
-**Formulário de cadastro/edição** com todos os campos do produto e área de upload:
-- Capa (1 foto)
-- Galeria (até 3 fotos)
-- Vídeo (URL YouTube/Instagram)
-- Drag-and-drop ou clique para selecionar
-- Preview das imagens antes de salvar
-- Ao salvar: faz upload pro bucket e grava a URL pública no produto
+## 4. Duplicar produto
 
-**Ações rápidas na lista**: marcar como Vendido / Reservado / Disponível com um clique.
+Botão "Duplicar" (ícone Copy) em cada linha + opção em ações em massa.
 
-## 6. Site público
+Comportamento: abre o formulário pré-preenchido com todos os campos do produto original **exceto** código (sugere `{codigo}-COPIA` editável) e status (volta pra Disponível). Imagens vêm preenchidas com as URLs originais — admin pode trocar antes de salvar.
 
-Atualizar `sheetsService.ts` para buscar produtos da tabela `products` do Cloud em vez do JSON do VPS. Todo o restante do site (cards, detalhe, WhatsApp) continua igual — só muda a fonte dos dados.
+## 5. Upload múltiplo de fotos
 
-Manter o fallback pro JSON do VPS caso o Cloud esteja indisponível.
+Reformular `ImageUploader` para um componente único `GalleryUploader` que aceita:
 
-## Arquivos afetados
+- Drag-and-drop de várias imagens de uma vez (até 4: capa + 3 galeria)
+- Cada thumbnail mostra badge "Capa" / "Galeria 1/2/3"
+- Drag para reordenar (a primeira vira capa)
+- Botão X para remover
+- Upload simultâneo com indicador de progresso por foto
+- Validação: máx 4 imagens, formatos jpg/png/webp, tamanho máx 5MB cada
 
-- Migração SQL: tabelas `products`, `user_roles`, enum, função `has_role`, políticas RLS, bucket de storage
-- `src/pages/Auth.tsx` (novo) — tela de login
-- `src/pages/Admin.tsx` (novo) — painel
-- `src/components/admin/ProductForm.tsx` (novo)
-- `src/components/admin/ProductTable.tsx` (novo)
-- `src/components/admin/ImageUploader.tsx` (novo)
-- `src/hooks/useAuth.ts` (novo)
-- `supabase/functions/import-catalog/index.ts` (novo) — edge function
-- `src/services/sheetsService.ts` — passa a ler do Cloud
-- `src/App.tsx` — rotas `/auth` e `/admin`
+Salva no bucket `product-images` em `{codigo}/capa.jpg`, `{codigo}/galeria-N.jpg` e grava URLs públicas no produto.
 
-## Fluxo após implantação
+## 6. Filtro por categoria
 
-1. Você acessa `/auth`, loga com seu email/senha
-2. Entra no `/admin`, clica "Importar catálogo do VPS" → todos os produtos atuais aparecem
-3. Daí em diante: cadastra novos produtos pelo formulário com upload direto
-4. Edita status (vendido/reservado) com um clique
-5. Site público mostra automaticamente as mudanças
+Adicionar Select "Todas as categorias" ao lado do filtro de status. Categorias carregadas dinamicamente (distinct) da tabela.
+
+---
+
+## Estrutura técnica
+
+**Migração SQL:**
+
+```text
+- CREATE TABLE public.sales (
+    id, product_codigo, sold_at, channel, final_price,
+    buyer_name, buyer_contact, notes, created_at
+  )
+- GRANT + RLS: leitura/escrita só para admins
+- Índice em product_codigo e sold_at
+```
+
+**Arquivos novos:**
+
+- `src/components/admin/MetricsBar.tsx` — cards do dashboard
+- `src/components/admin/SaleDialog.tsx` — modal de registro de venda
+- `src/components/admin/SalesHistory.tsx` — tabela de vendas
+- `src/components/admin/GalleryUploader.tsx` — substitui `ImageUploader` (mantém antigo só se necessário)
+- `src/components/admin/BulkActionsBar.tsx` — barra flutuante de seleção
+- `src/hooks/useMetrics.ts` — agrega contadores e valores
+
+**Arquivos editados:**
+
+- `src/pages/Admin.tsx` — abas "Produtos | Vendas", métricas no topo, seleção múltipla, filtro categoria
+- `src/components/admin/ProductForm.tsx` — usa novo `GalleryUploader`, intercepta mudança para "Vendido"
+- `src/integrations/supabase/types.ts` — auto-regenerado
+
+**Não muda:** site público, fluxo WhatsApp, autenticação, tipografia, paleta. A estética cozy/cream com `rounded-2xl` e Cormorant é preservada em todos os novos componentes.
+
+## Fluxo final pra você
+
+1. Entra em `/admin` → vê o pulso do brechó na hora (estoque, vendas do mês)
+2. Aba "Produtos": lista com filtros, seleção múltipla, duplicar com 1 clique
+3. Cadastra novo produto arrastando 4 fotos de uma vez, reordena a capa
+4. Marca como vendido → modal pede canal, valor final, comprador → salva histórico
+5. Aba "Vendas": vê tudo que vendeu no mês, faturamento, edita se errou algo
