@@ -319,6 +319,14 @@ export default function Admin() {
           <TabsContent value="vendas">
             <SalesHistory onChange={() => setRefreshKey((k) => k + 1)} />
           </TabsContent>
+
+          <TabsContent value="banners">
+            <BannersManager />
+          </TabsContent>
+
+          <TabsContent value="popup">
+            <PopupManager />
+          </TabsContent>
         </Tabs>
       </div>
 
