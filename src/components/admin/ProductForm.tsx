@@ -5,19 +5,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { ImageUploader } from "./ImageUploader";
+import { GalleryUploader } from "./GalleryUploader";
+import { SaleDialog } from "./SaleDialog";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { Product } from "@/types/product";
 
 interface Props {
   product?: Product | null;
+  duplicateFrom?: Product | null;
   onSaved: () => void;
   onCancel: () => void;
 }
@@ -43,27 +41,72 @@ const emptyProduct = {
   url_video: "",
 };
 
-export function ProductForm({ product, onSaved, onCancel }: Props) {
+export function ProductForm({ product, duplicateFrom, onSaved, onCancel }: Props) {
   const [form, setForm] = useState(emptyProduct);
   const [tagsText, setTagsText] = useState("");
   const [saving, setSaving] = useState(false);
+  const [saleOpen, setSaleOpen] = useState(false);
+  const initialStatus = product?.status ?? "Disponível";
 
   useEffect(() => {
     if (product) {
       setForm({ ...emptyProduct, ...product });
       setTagsText((product.tag || []).join(", "));
+    } else if (duplicateFrom) {
+      setForm({
+        ...emptyProduct,
+        ...duplicateFrom,
+        codigo: `${duplicateFrom.codigo}-COPIA`,
+        status: "Disponível",
+      });
+      setTagsText((duplicateFrom.tag || []).join(", "));
     } else {
       setForm(emptyProduct);
       setTagsText("");
     }
-  }, [product]);
+  }, [product, duplicateFrom]);
 
   const update = (k: string, v: any) => setForm((f) => ({ ...f, [k]: v }));
+
+  const galleryUrls = [form.url_capa, form.url_galeria_1 || "", form.url_galeria_2 || "", form.url_galeria_3 || ""];
+
+  function setGallery(urls: string[]) {
+    setForm((f) => ({
+      ...f,
+      url_capa: urls[0] || "",
+      url_galeria_1: urls[1] || "",
+      url_galeria_2: urls[2] || "",
+      url_galeria_3: urls[3] || "",
+    }));
+  }
+
+  async function persist(payload: any) {
+    const { error } = product
+      ? await supabase.from("products").update(payload).eq("codigo", product.codigo)
+      : await supabase.from("products").insert(payload);
+    return error;
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!form.codigo || !form.nome) {
       toast.error("Código e nome são obrigatórios");
+      return;
+    }
+    // If switching to Vendido on existing product, open sale dialog instead of saving status directly
+    if (product && form.status === "Vendido" && initialStatus !== "Vendido") {
+      // Save all other fields first (keeping previous status), then open sale dialog
+      setSaving(true);
+      const payload = {
+        ...form,
+        status: initialStatus,
+        tag: tagsText.split(",").map((t) => t.trim()).filter(Boolean),
+        preco_brl: Number(form.preco_brl) || 0,
+      };
+      const err = await persist(payload);
+      setSaving(false);
+      if (err) { toast.error("Erro: " + err.message); return; }
+      setSaleOpen(true);
       return;
     }
     setSaving(true);
@@ -72,19 +115,17 @@ export function ProductForm({ product, onSaved, onCancel }: Props) {
       tag: tagsText.split(",").map((t) => t.trim()).filter(Boolean),
       preco_brl: Number(form.preco_brl) || 0,
     };
-    const { error } = product
-      ? await supabase.from("products").update(payload).eq("codigo", product.codigo)
-      : await supabase.from("products").insert(payload);
+    const err = await persist(payload);
     setSaving(false);
-    if (error) {
-      toast.error("Erro ao salvar: " + error.message);
-    } else {
+    if (err) toast.error("Erro ao salvar: " + err.message);
+    else {
       toast.success(product ? "Produto atualizado" : "Produto criado");
       onSaved();
     }
   }
 
   return (
+    <>
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
@@ -156,11 +197,9 @@ export function ProductForm({ product, onSaved, onCancel }: Props) {
         <Input value={form.url_video} onChange={(e) => update("url_video", e.target.value)} placeholder="https://youtu.be/..." />
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <ImageUploader label="Capa" slot="capa" codigo={form.codigo} value={form.url_capa} onChange={(v) => update("url_capa", v)} />
-        <ImageUploader label="Galeria 1" slot="galeria-1" codigo={form.codigo} value={form.url_galeria_1} onChange={(v) => update("url_galeria_1", v)} />
-        <ImageUploader label="Galeria 2" slot="galeria-2" codigo={form.codigo} value={form.url_galeria_2} onChange={(v) => update("url_galeria_2", v)} />
-        <ImageUploader label="Galeria 3" slot="galeria-3" codigo={form.codigo} value={form.url_galeria_3} onChange={(v) => update("url_galeria_3", v)} />
+      <div>
+        <Label className="mb-2 block">Fotos (capa + galeria)</Label>
+        <GalleryUploader codigo={form.codigo} urls={galleryUrls} onChange={setGallery} />
       </div>
 
       <div className="flex gap-3 justify-end pt-4 border-t">
@@ -171,5 +210,17 @@ export function ProductForm({ product, onSaved, onCancel }: Props) {
         </Button>
       </div>
     </form>
+
+    {product && (
+      <SaleDialog
+        open={saleOpen}
+        onOpenChange={(o) => { setSaleOpen(o); if (!o) onSaved(); }}
+        productCodigo={product.codigo}
+        productNome={form.nome}
+        defaultPrice={Number(form.preco_brl) || 0}
+        onSaved={onSaved}
+      />
+    )}
+    </>
   );
 }
