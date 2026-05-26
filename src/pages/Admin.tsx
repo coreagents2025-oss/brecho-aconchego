@@ -129,6 +129,12 @@ export default function Admin() {
     else { toast.success(`${payload.length} duplicado(s)`); setSelected(new Set()); loadProducts(); }
   }
 
+  const categories = useMemo(() => {
+    const set = new Set<string>();
+    products.forEach((p) => p.categoria && set.add(p.categoria));
+    return Array.from(set).sort();
+  }, [products]);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -137,11 +143,6 @@ export default function Admin() {
     );
   }
 
-  const categories = useMemo(() => {
-    const set = new Set<string>();
-    products.forEach((p) => p.categoria && set.add(p.categoria));
-    return Array.from(set).sort();
-  }, [products]);
 
   const filtered = products.filter((p) => {
     if (statusFilter !== "all" && p.status !== statusFilter) return false;
