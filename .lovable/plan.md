@@ -1,107 +1,81 @@
+# Plano: Gestão & Analytics no Painel Admin
 
-# Painel admin: melhorias práticas
+Expandir o `/admin` para além do cadastro: banners do carrossel, popup promocional, métricas de visitas e ranking de produtos.
 
-Manter a base atual (lista + formulário) e adicionar 5 frentes objetivas, sem inflar a UI.
+## 1. Banco de dados (nova migration)
 
-## 1. Dashboard de métricas (topo do /admin)
+Tabelas novas no schema `public`:
 
-Faixa de cards compactos acima da lista, com dados calculados em tempo real da tabela `products` e `sales`:
+- **`banners`** — `id`, `titulo`, `subtitulo`, `imagem_url`, `link_url`, `ordem` (int), `ativo` (bool), `created_at`, `updated_at`. RLS: leitura pública dos ativos; admin gerencia.
+- **`popup`** — `id`, `titulo`, `mensagem`, `imagem_url`, `cta_texto`, `cta_url`, `ativo` (bool, único ativo por vez), `updated_at`. RLS: leitura pública do ativo; admin gerencia.
+- **`page_visits`** — `id`, `path`, `session_id` (uuid gerado no client e salvo no localStorage), `referrer`, `source` (direct/instagram/google/whatsapp/outros — derivado do referrer), `user_agent`, `created_at`. RLS: INSERT público; SELECT só admin.
+- **`product_views`** — `id`, `product_codigo`, `session_id`, `created_at`. RLS: INSERT público; SELECT só admin.
+- **`whatsapp_clicks`** — `id`, `product_codigo` (nullable, p/ cliques genéricos), `session_id`, `created_at`. RLS: INSERT público; SELECT só admin.
 
-- Total de peças cadastradas
-- Disponíveis / Reservadas / Vendidas (3 contadores)
-- Valor do estoque disponível (soma de `preco_brl` onde status = Disponível)
-- Vendas do mês (qtde + R$ faturado, da tabela `sales`)
-- Ticket médio do mês
+Índices em `created_at`, `product_codigo`, `session_id`. GRANTs apropriados (anon: INSERT em tabelas de tracking + SELECT em banners/popup ativos; authenticated/service_role completos).
 
-Layout: grid responsivo de cards `rounded-2xl` em creme, ícones lucide, números grandes em Cormorant. Recolhível em mobile.
+Funções SQL `SECURITY DEFINER` para agregações (admin only):
+- `top_products(days int)` → top 10 por views + cliques WA.
+- `daily_visits(days int)` → série diária total/único.
+- `traffic_sources(days int)` → contagem por source.
+- `whatsapp_conversion(days int)` → views vs cliques por produto.
 
-## 2. Registro de vendas
+## 2. Storage
 
-Nova tabela `sales` no banco para guardar histórico completo:
+Reaproveitar bucket `product-images` com pastas `banners/` e `popup/` (ou criar bucket `marketing` público — pendente decisão simples; vou usar pastas no bucket existente para manter simplicidade).
 
-- referência ao produto (codigo)
-- data da venda
-- canal: WhatsApp / Instagram / Presencial / Outro
-- valor final (pode diferir do preço de tabela — desconto)
-- nome do comprador (opcional)
-- contato do comprador (opcional)
-- observações
+## 3. Tracking (front público)
 
-**Fluxo:** quando o admin muda status para "Vendido" (na lista ou no form), abre modal pedindo esses dados antes de confirmar. Cancelar = não muda o status. Confirmar = grava venda + atualiza produto.
+- `src/lib/tracking.ts`: gera/lê `session_id` em localStorage; expõe `trackPageView(path)`, `trackProductView(codigo)`, `trackWhatsAppClick(codigo?)`. Calcula `source` a partir de `document.referrer`.
+- Hook `useTrackPageView()` chamado em `Index.tsx` e `ProductDetail.tsx` (no `useEffect` com path).
+- `trackProductView` disparado em `ProductDetail.tsx` ao carregar o produto.
+- `trackWhatsAppClick` inserido em `WhatsAppButton.tsx` e nos CTAs do admin/site que abrem WhatsApp.
+- Inserts feitos com Supabase client (RLS permite INSERT anônimo).
 
-Aba/seção "Vendas" no painel mostra histórico em tabela com filtro por mês, busca por código/comprador, e botão para editar/excluir um registro (caso de erro).
+## 4. Consumo público de banners e popup
 
-Reverter "Vendido → Disponível" pergunta se quer apagar o registro de venda correspondente.
+- `useBanners()` lê banners ativos ordenados; substitui imagens fixas do Hero/Carrossel da Home.
+- `usePopup()` lê popup ativo; novo componente `PromoPopup.tsx` exibe 1x por sessão (flag em sessionStorage), botão fechar + CTA.
 
-## 3. Ações em massa
+## 5. Painel admin — novas abas
 
-Checkbox na primeira coluna da lista + checkbox no header (selecionar todos da página).
-
-Barra flutuante aparece quando há seleção, com:
-
-- Mudar status (Disponível / Reservado / Vendido) — se Vendido, abre modal de venda por item
-- Excluir selecionados (confirmação)
-- Duplicar selecionados
-
-## 4. Duplicar produto
-
-Botão "Duplicar" (ícone Copy) em cada linha + opção em ações em massa.
-
-Comportamento: abre o formulário pré-preenchido com todos os campos do produto original **exceto** código (sugere `{codigo}-COPIA` editável) e status (volta pra Disponível). Imagens vêm preenchidas com as URLs originais — admin pode trocar antes de salvar.
-
-## 5. Upload múltiplo de fotos
-
-Reformular `ImageUploader` para um componente único `GalleryUploader` que aceita:
-
-- Drag-and-drop de várias imagens de uma vez (até 4: capa + 3 galeria)
-- Cada thumbnail mostra badge "Capa" / "Galeria 1/2/3"
-- Drag para reordenar (a primeira vira capa)
-- Botão X para remover
-- Upload simultâneo com indicador de progresso por foto
-- Validação: máx 4 imagens, formatos jpg/png/webp, tamanho máx 5MB cada
-
-Salva no bucket `product-images` em `{codigo}/capa.jpg`, `{codigo}/galeria-N.jpg` e grava URLs públicas no produto.
-
-## 6. Filtro por categoria
-
-Adicionar Select "Todas as categorias" ao lado do filtro de status. Categorias carregadas dinamicamente (distinct) da tabela.
-
----
-
-## Estrutura técnica
-
-**Migração SQL:**
+`Admin.tsx` ganha mais tabs no `<Tabs>`:
 
 ```text
-- CREATE TABLE public.sales (
-    id, product_codigo, sold_at, channel, final_price,
-    buyer_name, buyer_contact, notes, created_at
-  )
-- GRANT + RLS: leitura/escrita só para admins
-- Índice em product_codigo e sold_at
+[ Dashboard ] [ Produtos ] [ Vendas ] [ Banners ] [ Popup ]
 ```
 
-**Arquivos novos:**
+- **Dashboard** (`AnalyticsDashboard.tsx`): seletor de período (7/30 dias) + 4 blocos:
+  - Top 10 produtos (tabela com foto, nome, views, cliques WA, taxa).
+  - Visitas por dia (gráfico de linha — recharts).
+  - Conversão WhatsApp (total views vs cliques, % geral e por produto top).
+  - Origem do tráfego (gráfico de pizza/barras).
+- **Banners** (`BannersManager.tsx`): lista com drag-handle p/ ordem, toggle ativo, editar, excluir, novo. Form com upload (reusa `GalleryUploader` simplificado p/ 1 imagem), título, subtítulo, link.
+- **Popup** (`PopupManager.tsx`): form único editando o registro ativo; preview ao lado; switch para ativar/desativar.
 
-- `src/components/admin/MetricsBar.tsx` — cards do dashboard
-- `src/components/admin/SaleDialog.tsx` — modal de registro de venda
-- `src/components/admin/SalesHistory.tsx` — tabela de vendas
-- `src/components/admin/GalleryUploader.tsx` — substitui `ImageUploader` (mantém antigo só se necessário)
-- `src/components/admin/BulkActionsBar.tsx` — barra flutuante de seleção
-- `src/hooks/useMetrics.ts` — agrega contadores e valores
+Métricas atuais (`MetricsBar`) ficam no topo do Dashboard.
 
-**Arquivos editados:**
+## 6. Arquivos a criar/editar
 
-- `src/pages/Admin.tsx` — abas "Produtos | Vendas", métricas no topo, seleção múltipla, filtro categoria
-- `src/components/admin/ProductForm.tsx` — usa novo `GalleryUploader`, intercepta mudança para "Vendido"
-- `src/integrations/supabase/types.ts` — auto-regenerado
+**Novos**
+- `supabase/migrations/<ts>_marketing_analytics.sql`
+- `src/lib/tracking.ts`
+- `src/hooks/useTracking.ts`, `useBanners.ts`, `usePopup.ts`, `useAnalytics.ts`
+- `src/components/PromoPopup.tsx`
+- `src/components/admin/AnalyticsDashboard.tsx`
+- `src/components/admin/BannersManager.tsx`
+- `src/components/admin/BannerForm.tsx`
+- `src/components/admin/PopupManager.tsx`
 
-**Não muda:** site público, fluxo WhatsApp, autenticação, tipografia, paleta. A estética cozy/cream com `rounded-2xl` e Cormorant é preservada em todos os novos componentes.
+**Editados**
+- `src/pages/Admin.tsx` — novas tabs.
+- `src/pages/Index.tsx` — `useBanners`, tracking, render do `<PromoPopup/>`.
+- `src/pages/ProductDetail.tsx` — `trackProductView`.
+- `src/components/WhatsAppButton.tsx` — `trackWhatsAppClick`.
+- `src/App.tsx` — chamar `usePageViewTracker` global (route change).
 
-## Fluxo final pra você
+## 7. Não muda
 
-1. Entra em `/admin` → vê o pulso do brechó na hora (estoque, vendas do mês)
-2. Aba "Produtos": lista com filtros, seleção múltipla, duplicar com 1 clique
-3. Cadastra novo produto arrastando 4 fotos de uma vez, reordena a capa
-4. Marca como vendido → modal pede canal, valor final, comprador → salva histórico
-5. Aba "Vendas": vê tudo que vendeu no mês, faturamento, edita se errou algo
+Auth, fluxo WhatsApp, design (cream/cobre, rounded-2xl, Cormorant), import do VPS, tabelas existentes (`products`, `sales`, `user_roles`).
+
+Posso seguir com a migration?
