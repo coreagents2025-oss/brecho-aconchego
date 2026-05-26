@@ -86,6 +86,42 @@ export type Database = {
         }
         Relationships: []
       }
+      sales: {
+        Row: {
+          buyer_contact: string | null
+          buyer_name: string | null
+          channel: string
+          created_at: string
+          final_price: number
+          id: string
+          notes: string | null
+          product_codigo: string
+          sold_at: string
+        }
+        Insert: {
+          buyer_contact?: string | null
+          buyer_name?: string | null
+          channel?: string
+          created_at?: string
+          final_price?: number
+          id?: string
+          notes?: string | null
+          product_codigo: string
+          sold_at?: string
+        }
+        Update: {
+          buyer_contact?: string | null
+          buyer_name?: string | null
+          channel?: string
+          created_at?: string
+          final_price?: number
+          id?: string
+          notes?: string | null
+          product_codigo?: string
+          sold_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
