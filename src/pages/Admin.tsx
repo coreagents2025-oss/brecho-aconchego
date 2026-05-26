@@ -201,11 +201,18 @@ export default function Admin() {
       <div className="container mx-auto px-6 py-6 space-y-6">
         <MetricsBar refreshKey={refreshKey} />
 
-        <Tabs defaultValue="produtos">
+        <Tabs defaultValue="dashboard">
           <TabsList>
+            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
             <TabsTrigger value="produtos">Produtos</TabsTrigger>
             <TabsTrigger value="vendas">Vendas</TabsTrigger>
+            <TabsTrigger value="banners">Banners</TabsTrigger>
+            <TabsTrigger value="popup">Popup</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="dashboard">
+            <AnalyticsDashboard />
+          </TabsContent>
 
           <TabsContent value="produtos" className="space-y-4">
             <div className="flex flex-wrap gap-3 items-end">
