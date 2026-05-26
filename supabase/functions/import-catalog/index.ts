@@ -5,7 +5,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const CATALOG_URL = "https://fotos.brechodavez.com.br/public/catalogo.json";
+// Usa HTTP pois o certificado HTTPS do VPS é inválido para esse hostname
+const CATALOG_URL = "http://fotos.brechodavez.com.br/public/catalogo.json";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
