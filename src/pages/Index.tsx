@@ -222,6 +222,7 @@ export default function Index() {
             onClick={() => {
               const message = encodeURIComponent('Oi! Estou procurando uma peça específica. Vocês podem me ajudar? 🤍');
               const waNumber = import.meta.env.VITE_WA_NUMBER || '5541995299244';
+              trackWhatsAppClick();
               window.open(`https://wa.me/${waNumber}?text=${message}`, '_blank');
             }}
             className="bg-accent hover:bg-accent/90 text-accent-foreground font-body font-medium shadow-hover transition-bounce"
