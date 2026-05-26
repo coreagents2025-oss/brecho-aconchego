@@ -59,38 +59,50 @@ export default function Index() {
 
   return (
     <div className="min-h-screen bg-background">
+      <PromoPopup />
       {/* Hero Section */}
       <section className="relative">
         <div className="relative h-[60vh] min-h-[400px] overflow-hidden">
           <img
-            src={heroImage}
-            alt="Brechó da Vez - Peças vintage com história"
-            className="w-full h-full object-cover"
+            src={activeBanner?.imagem_url || heroImage}
+            alt={activeBanner?.titulo || 'Brechó da Vez - Peças vintage com história'}
+            className="w-full h-full object-cover transition-opacity duration-700"
           />
           <div className="absolute inset-0 bg-warm-black/30" />
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center text-white space-y-4 px-4">
               <h1 className="font-display text-5xl md:text-6xl font-medium text-shadow">
-                Brechó da Vez
+                {activeBanner?.titulo || 'Brechó da Vez'}
               </h1>
               <p className="font-body text-xl md:text-2xl font-light text-shadow">
-                Peças com história, novo amor
+                {activeBanner?.subtitulo || 'Peças com história, novo amor'}
               </p>
-              <p className="font-body text-base md:text-lg opacity-90 max-w-2xl mx-auto">
-                Cada peça no nosso catálogo tem uma história especial. 
-                Encontre tesouros únicos que estão esperando por um novo lar cheio de carinho.
-              </p>
+              {!activeBanner && (
+                <p className="font-body text-base md:text-lg opacity-90 max-w-2xl mx-auto">
+                  Cada peça no nosso catálogo tem uma história especial.
+                  Encontre tesouros únicos que estão esperando por um novo lar cheio de carinho.
+                </p>
+              )}
               <Button
                 size="lg"
                 className="mt-6 bg-secondary hover:bg-secondary/90 text-secondary-foreground font-body font-medium shadow-hover transition-bounce"
                 onClick={() => {
-                  document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' });
+                  if (activeBanner?.link_url) window.open(activeBanner.link_url, '_blank');
+                  else document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' });
                 }}
               >
-                Descobrir peças especiais ✨
+                {activeBanner?.link_url ? 'Saiba mais ✨' : 'Descobrir peças especiais ✨'}
               </Button>
             </div>
           </div>
+          {banners.length > 1 && (
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+              {banners.map((_, i) => (
+                <button key={i} onClick={() => setBannerIdx(i)}
+                  className={`w-2 h-2 rounded-full transition-all ${i === bannerIdx ? 'bg-white w-6' : 'bg-white/50'}`} />
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
