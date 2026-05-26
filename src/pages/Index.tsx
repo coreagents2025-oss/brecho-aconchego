@@ -1,18 +1,31 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ProductCard } from '@/components/ProductCard';
 import { FiltersBar } from '@/components/FiltersBar';
 import { useProducts } from '@/hooks/useProducts';
 import { ProductStatus } from '@/types/product';
+import { useBanners } from '@/hooks/useBanners';
+import { PromoPopup } from '@/components/PromoPopup';
+import { trackWhatsAppClick } from '@/lib/tracking';
 import heroImage from '@/assets/hero-image.jpg';
 
 export default function Index() {
   const { products, loading, error } = useProducts();
+  const { banners } = useBanners(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedSize, setSelectedSize] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState<ProductStatus | 'all'>('all');
   const [showSoldItems, setShowSoldItems] = useState(true);
+  const [bannerIdx, setBannerIdx] = useState(0);
+
+  useEffect(() => {
+    if (banners.length < 2) return;
+    const t = setInterval(() => setBannerIdx((i) => (i + 1) % banners.length), 6000);
+    return () => clearInterval(t);
+  }, [banners.length]);
+
+  const activeBanner = banners[bannerIdx];
 
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
