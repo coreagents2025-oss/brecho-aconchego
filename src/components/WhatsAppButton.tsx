@@ -3,6 +3,7 @@ import { MessageCircle, Heart } from 'lucide-react';
 import { generateWhatsAppLink, generateInterestWhatsAppLink } from '@/utils/whatsapp';
 import { ProductStatus } from '@/types/product';
 import { cn } from '@/lib/utils';
+import { trackWhatsAppClick } from '@/lib/tracking';
 
 interface WhatsAppButtonProps {
   codigo: string;
@@ -35,7 +36,7 @@ export function WhatsAppButton({
     } else {
       return; // Don't handle sold items
     }
-    
+    trackWhatsAppClick(codigo);
     window.open(link, '_blank');
   };
 
