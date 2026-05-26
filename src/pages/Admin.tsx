@@ -14,6 +14,9 @@ import { MetricsBar } from "@/components/admin/MetricsBar";
 import { SalesHistory } from "@/components/admin/SalesHistory";
 import { SaleDialog } from "@/components/admin/SaleDialog";
 import { BulkActionsBar } from "@/components/admin/BulkActionsBar";
+import { AnalyticsDashboard } from "@/components/admin/AnalyticsDashboard";
+import { BannersManager } from "@/components/admin/BannersManager";
+import { PopupManager } from "@/components/admin/PopupManager";
 import { Product } from "@/types/product";
 import { Loader2, Plus, Pencil, Trash2, Download, LogOut, ExternalLink, Copy } from "lucide-react";
 import { toast } from "sonner";
@@ -198,11 +201,18 @@ export default function Admin() {
       <div className="container mx-auto px-6 py-6 space-y-6">
         <MetricsBar refreshKey={refreshKey} />
 
-        <Tabs defaultValue="produtos">
+        <Tabs defaultValue="dashboard">
           <TabsList>
+            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
             <TabsTrigger value="produtos">Produtos</TabsTrigger>
             <TabsTrigger value="vendas">Vendas</TabsTrigger>
+            <TabsTrigger value="banners">Banners</TabsTrigger>
+            <TabsTrigger value="popup">Popup</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="dashboard">
+            <AnalyticsDashboard />
+          </TabsContent>
 
           <TabsContent value="produtos" className="space-y-4">
             <div className="flex flex-wrap gap-3 items-end">
@@ -308,6 +318,14 @@ export default function Admin() {
 
           <TabsContent value="vendas">
             <SalesHistory onChange={() => setRefreshKey((k) => k + 1)} />
+          </TabsContent>
+
+          <TabsContent value="banners">
+            <BannersManager />
+          </TabsContent>
+
+          <TabsContent value="popup">
+            <PopupManager />
           </TabsContent>
         </Tabs>
       </div>

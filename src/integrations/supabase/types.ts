@@ -14,6 +14,129 @@ export type Database = {
   }
   public: {
     Tables: {
+      banners: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          id: string
+          imagem_url: string
+          link_url: string
+          ordem: number
+          subtitulo: string
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          id?: string
+          imagem_url?: string
+          link_url?: string
+          ordem?: number
+          subtitulo?: string
+          titulo?: string
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          id?: string
+          imagem_url?: string
+          link_url?: string
+          ordem?: number
+          subtitulo?: string
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      page_visits: {
+        Row: {
+          created_at: string
+          id: string
+          path: string
+          referrer: string | null
+          session_id: string
+          source: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          path: string
+          referrer?: string | null
+          session_id: string
+          source?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          path?: string
+          referrer?: string | null
+          session_id?: string
+          source?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
+      popup: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          cta_texto: string
+          cta_url: string
+          id: string
+          imagem_url: string
+          mensagem: string
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          cta_texto?: string
+          cta_url?: string
+          id?: string
+          imagem_url?: string
+          mensagem?: string
+          titulo?: string
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          cta_texto?: string
+          cta_url?: string
+          id?: string
+          imagem_url?: string
+          mensagem?: string
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      product_views: {
+        Row: {
+          created_at: string
+          id: string
+          product_codigo: string
+          session_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          product_codigo: string
+          session_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          product_codigo?: string
+          session_id?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           categoria: string
@@ -143,17 +266,70 @@ export type Database = {
         }
         Relationships: []
       }
+      whatsapp_clicks: {
+        Row: {
+          created_at: string
+          id: string
+          product_codigo: string | null
+          session_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          product_codigo?: string | null
+          session_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          product_codigo?: string | null
+          session_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      daily_visits: {
+        Args: { days?: number }
+        Returns: {
+          dia: string
+          total: number
+          unicos: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      top_products: {
+        Args: { days?: number }
+        Returns: {
+          nome: string
+          product_codigo: string
+          url_capa: string
+          views: number
+          wa_clicks: number
+        }[]
+      }
+      traffic_sources: {
+        Args: { days?: number }
+        Returns: {
+          source: string
+          total: number
+        }[]
+      }
+      whatsapp_conversion: {
+        Args: { days?: number }
+        Returns: {
+          total_clicks: number
+          total_views: number
+        }[]
       }
     }
     Enums: {
