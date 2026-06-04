@@ -1,0 +1,21 @@
+{
+  "name": "Brechó da Vez",
+  "short_name": "Brechó da Vez",
+  "description": "Catálogo digital do Brechó da Vez — peças com história, novo amor.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F7F2EA",
+  "theme_color": "#F7F2EA",
+  "icons": [
+    {
+      "src": "https://storage.googleapis.com/gpt-engineer-file-uploads/0kanaAUnbwdsyxKaEqxyWEOZG3z2/uploads/1758423174199-Imagem do WhatsApp de 2025-09-16 à(s) 14.24.04_e7de719b.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "https://storage.googleapis.com/gpt-engineer-file-uploads/0kanaAUnbwdsyxKaEqxyWEOZG3z2/uploads/1758423174199-Imagem do WhatsApp de 2025-09-16 à(s) 14.24.04_e7de719b.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    }
+  ]
+}
