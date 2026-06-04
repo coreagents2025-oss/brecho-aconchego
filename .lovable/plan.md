@@ -1,81 +1,67 @@
-# Plano: Gestão & Analytics no Painel Admin
+## Auditoria pré-produção — Brechó da Vez
 
-Expandir o `/admin` para além do cadastro: banners do carrossel, popup promocional, métricas de visitas e ranking de produtos.
+Vou rodar uma varredura completa do app antes do go-live e entregar (1) um **relatório** com achados classificados por severidade e (2) **correções aplicadas** dos itens críticos e altos. Itens médios/baixos ficam listados com recomendação para você decidir se quer corrigir agora.
 
-## 1. Banco de dados (nova migration)
+### Escopo
 
-Tabelas novas no schema `public`:
+1. **Rotas & Navegação**
+   - Verificar todas as rotas (`/`, `/p/:codigo`, `/auth`, `/admin`, `*`) — fallback 404, deep-links, refresh, redirect quando não autenticado/sem admin.
+   - Links internos (Header/Footer/ProductCard/voltar) — alvos quebrados, `target=_blank` sem `rel=noopener`.
+   - Botão voltar do navegador e scroll restoration entre rotas.
+   - Guard do `/admin` (já redireciona para `/auth` se não admin — validar edge cases).
 
-- **`banners`** — `id`, `titulo`, `subtitulo`, `imagem_url`, `link_url`, `ordem` (int), `ativo` (bool), `created_at`, `updated_at`. RLS: leitura pública dos ativos; admin gerencia.
-- **`popup`** — `id`, `titulo`, `mensagem`, `imagem_url`, `cta_texto`, `cta_url`, `ativo` (bool, único ativo por vez), `updated_at`. RLS: leitura pública do ativo; admin gerencia.
-- **`page_visits`** — `id`, `path`, `session_id` (uuid gerado no client e salvo no localStorage), `referrer`, `source` (direct/instagram/google/whatsapp/outros — derivado do referrer), `user_agent`, `created_at`. RLS: INSERT público; SELECT só admin.
-- **`product_views`** — `id`, `product_codigo`, `session_id`, `created_at`. RLS: INSERT público; SELECT só admin.
-- **`whatsapp_clicks`** — `id`, `product_codigo` (nullable, p/ cliques genéricos), `session_id`, `created_at`. RLS: INSERT público; SELECT só admin.
+2. **Usabilidade**
+   - Fluxo de compra via WhatsApp (CTA visível, mensagem pré-preenchida correta, tracking disparando).
+   - Filtros (busca, categoria, tamanho, status, mostrar vendidos) — estado vazio, reset, combinações.
+   - Galeria do produto, badges de status, produtos relacionados.
+   - Popup promocional (1x por sessão, fechar, CTA).
+   - Banners carrossel (autoplay, dots, click link).
+   - Admin: formulário de produto, upload de imagens, ações em massa, registro de venda, dashboard de analytics.
+   - Mensagens de erro/sucesso (toasts), estados de loading, confirmações de exclusão.
 
-Índices em `created_at`, `product_codigo`, `session_id`. GRANTs apropriados (anon: INSERT em tabelas de tracking + SELECT em banners/popup ativos; authenticated/service_role completos).
+3. **Responsividade**
+   - Testar viewports: 360, 390, 414, 768, 1024, 1280, 1920.
+   - Hero (texto legível em mobile), grid do catálogo, filtros (overflow), galeria do produto, tabelas do admin, modais e tabs em mobile.
+   - Tap targets ≥ 44×44, ausência de scroll horizontal, `h-screen` vs `h-dvh`.
 
-Funções SQL `SECURITY DEFINER` para agregações (admin only):
-- `top_products(days int)` → top 10 por views + cliques WA.
-- `daily_visits(days int)` → série diária total/único.
-- `traffic_sources(days int)` → contagem por source.
-- `whatsapp_conversion(days int)` → views vs cliques por produto.
+4. **Layout & Design System**
+   - Uso de tokens semânticos vs cores hardcoded (`text-white`, `bg-black`, `text-gray-*`).
+   - Consistência tipográfica (Cormorant Garamond/Quicksand), espaçamentos, radius, sombras.
+   - Contraste WCAG AA em textos sobre imagens (overlay do hero) e estados desabilitados.
+   - Alinhamento de cards, alturas de imagem consistentes (`aspect-[3/4]`).
 
-## 2. Storage
+5. **Acessibilidade**
+   - `alt` em imagens (hero/banner/produtos/galeria), `aria-label` em botões icon-only, labels em inputs/filtros, hierarquia de headings (h1 único por página), landmarks (`<main>`).
+   - Foco visível, navegação por teclado em Dialog/Tabs/Select.
 
-Reaproveitar bucket `product-images` com pastas `banners/` e `popup/` (ou criar bucket `marketing` público — pendente decisão simples; vou usar pastas no bucket existente para manter simplicidade).
+6. **SEO & Meta**
+   - `index.html`: title atual OK, mas `og:title` está com UUID do projeto (corrigir), `og:image` é placeholder do Lovable (trocar pela imagem da marca), faltam `canonical` e `og:url`.
+   - `<html lang="en">` deveria ser `pt-BR`.
+   - Página de produto sem meta dinâmica (title/description/og por produto) — adicionar via `react-helmet-async` ou efeito que atualiza `document.title`.
+   - JSON-LD `Product` na página de detalhe (nome, imagem, preço, disponibilidade).
+   - `robots.txt` e sitemap (gerado estático com lista de produtos disponíveis).
 
-## 3. Tracking (front público)
+7. **Performance & Console**
+   - Console limpo (sem erros/warnings de React, chaves duplicadas, hooks).
+   - Network: requisições falhando, imagens muito pesadas (lazy-loading no grid), preconnect ao host de imagens.
+   - Bundle: revisar imports não usados.
 
-- `src/lib/tracking.ts`: gera/lê `session_id` em localStorage; expõe `trackPageView(path)`, `trackProductView(codigo)`, `trackWhatsAppClick(codigo?)`. Calcula `source` a partir de `document.referrer`.
-- Hook `useTrackPageView()` chamado em `Index.tsx` e `ProductDetail.tsx` (no `useEffect` com path).
-- `trackProductView` disparado em `ProductDetail.tsx` ao carregar o produto.
-- `trackWhatsAppClick` inserido em `WhatsAppButton.tsx` e nos CTAs do admin/site que abrem WhatsApp.
-- Inserts feitos com Supabase client (RLS permite INSERT anônimo).
+8. **Segurança / Backend**
+   - Rodar linter do Supabase (RLS, search_path em funções, policies anônimas indevidas).
+   - Confirmar que tabelas de tracking aceitam INSERT anônimo apenas, SELECT só admin.
+   - Conferir GRANTs em tabelas novas (`banners`, `popup`, `page_visits`, `product_views`, `whatsapp_clicks`).
 
-## 4. Consumo público de banners e popup
+### Entrega
 
-- `useBanners()` lê banners ativos ordenados; substitui imagens fixas do Hero/Carrossel da Home.
-- `usePopup()` lê popup ativo; novo componente `PromoPopup.tsx` exibe 1x por sessão (flag em sessionStorage), botão fechar + CTA.
+- **Relatório** em chat agrupado por: 🔴 Crítico · 🟠 Alto · 🟡 Médio · 🔵 Baixo, com arquivo/linha e impacto.
+- **Correções aplicadas** automaticamente para Crítico + Alto (ex.: lang pt-BR, og tags, meta dinâmica do produto, JSON-LD, alts faltando, aria-labels, tokens de cor, h-dvh, rel=noopener, fixes de responsividade).
+- **Lista de Médios/Baixos** com sugestão — você decide se quero seguir.
 
-## 5. Painel admin — novas abas
+### Fora de escopo (não toco)
 
-`Admin.tsx` ganha mais tabs no `<Tabs>`:
+- Mudanças de design / paleta / tipografia.
+- Funcionalidades novas (apenas correções).
+- Integração com Google Drive/Sheets (memória diz: usar VPS).
+- Lógica de negócio do WhatsApp/fluxo de venda.
 
-```text
-[ Dashboard ] [ Produtos ] [ Vendas ] [ Banners ] [ Popup ]
-```
-
-- **Dashboard** (`AnalyticsDashboard.tsx`): seletor de período (7/30 dias) + 4 blocos:
-  - Top 10 produtos (tabela com foto, nome, views, cliques WA, taxa).
-  - Visitas por dia (gráfico de linha — recharts).
-  - Conversão WhatsApp (total views vs cliques, % geral e por produto top).
-  - Origem do tráfego (gráfico de pizza/barras).
-- **Banners** (`BannersManager.tsx`): lista com drag-handle p/ ordem, toggle ativo, editar, excluir, novo. Form com upload (reusa `GalleryUploader` simplificado p/ 1 imagem), título, subtítulo, link.
-- **Popup** (`PopupManager.tsx`): form único editando o registro ativo; preview ao lado; switch para ativar/desativar.
-
-Métricas atuais (`MetricsBar`) ficam no topo do Dashboard.
-
-## 6. Arquivos a criar/editar
-
-**Novos**
-- `supabase/migrations/<ts>_marketing_analytics.sql`
-- `src/lib/tracking.ts`
-- `src/hooks/useTracking.ts`, `useBanners.ts`, `usePopup.ts`, `useAnalytics.ts`
-- `src/components/PromoPopup.tsx`
-- `src/components/admin/AnalyticsDashboard.tsx`
-- `src/components/admin/BannersManager.tsx`
-- `src/components/admin/BannerForm.tsx`
-- `src/components/admin/PopupManager.tsx`
-
-**Editados**
-- `src/pages/Admin.tsx` — novas tabs.
-- `src/pages/Index.tsx` — `useBanners`, tracking, render do `<PromoPopup/>`.
-- `src/pages/ProductDetail.tsx` — `trackProductView`.
-- `src/components/WhatsAppButton.tsx` — `trackWhatsAppClick`.
-- `src/App.tsx` — chamar `usePageViewTracker` global (route change).
-
-## 7. Não muda
-
-Auth, fluxo WhatsApp, design (cream/cobre, rounded-2xl, Cormorant), import do VPS, tabelas existentes (`products`, `sales`, `user_roles`).
-
-Posso seguir com a migration?
+Pode aprovar que eu começo a auditoria.
