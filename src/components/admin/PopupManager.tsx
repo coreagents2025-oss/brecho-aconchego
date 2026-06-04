@@ -70,7 +70,7 @@ export function PopupManager() {
       <form onSubmit={save} className="space-y-4">
         <div>
           <h2 className="font-display text-2xl">Popup promocional</h2>
-          <p className="text-sm text-muted-foreground">Aparece 1x por sessão na home.</p>
+          <p className="text-sm text-muted-foreground">Aparece na home conforme a frequência escolhida.</p>
         </div>
         <div>
           <Label>Imagem</Label>
