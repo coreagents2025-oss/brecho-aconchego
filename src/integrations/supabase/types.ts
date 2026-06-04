@@ -295,9 +295,9 @@ export type Database = {
       daily_visits: {
         Args: { days?: number }
         Returns: {
-          dia: string
+          day: string
           total: number
-          unicos: number
+          unique_sessions: number
         }[]
       }
       has_role: {
@@ -310,11 +310,8 @@ export type Database = {
       top_products: {
         Args: { days?: number }
         Returns: {
-          nome: string
           product_codigo: string
-          url_capa: string
-          views: number
-          wa_clicks: number
+          total: number
         }[]
       }
       traffic_sources: {
@@ -327,8 +324,9 @@ export type Database = {
       whatsapp_conversion: {
         Args: { days?: number }
         Returns: {
-          total_clicks: number
-          total_views: number
+          clicks: number
+          conversion: number
+          visits: number
         }[]
       }
     }
