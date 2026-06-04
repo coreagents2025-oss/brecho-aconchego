@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -21,8 +21,13 @@ import { Product } from "@/types/product";
 import { Loader2, Plus, Pencil, Trash2, Download, LogOut, ExternalLink, Copy } from "lucide-react";
 import { toast } from "sonner";
 
+const VALID_TABS = ["dashboard", "produtos", "vendas", "banners", "popup"] as const;
+type TabValue = typeof VALID_TABS[number];
+const PAGE_SIZE = 25;
+
 export default function Admin() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user, isAdmin, loading, signOut } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
@@ -36,6 +41,17 @@ export default function Admin() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [saleProduct, setSaleProduct] = useState<Product | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [page, setPage] = useState(1);
+
+  const tabParam = searchParams.get("tab");
+  const activeTab: TabValue = (VALID_TABS as readonly string[]).includes(tabParam || "")
+    ? (tabParam as TabValue)
+    : "dashboard";
+  const setActiveTab = (v: string) => {
+    const next = new URLSearchParams(searchParams);
+    next.set("tab", v);
+    setSearchParams(next, { replace: true });
+  };
 
   useEffect(() => {
     if (!loading && (!user || !isAdmin)) navigate("/auth");
@@ -58,7 +74,15 @@ export default function Admin() {
   }
 
   async function handleDelete(codigo: string) {
-    if (!confirm(`Excluir produto ${codigo}?`)) return;
+    const { count } = await supabase
+      .from("sales")
+      .select("id", { count: "exact", head: true })
+      .eq("product_codigo", codigo);
+    const salesCount = count ?? 0;
+    const msg = salesCount > 0
+      ? `Atenção: este produto tem ${salesCount} venda(s) registrada(s). Ao excluir, os registros de venda continuarão (sem vínculo). Confirmar exclusão de ${codigo}?`
+      : `Excluir produto ${codigo}?`;
+    if (!confirm(msg)) return;
     const { error } = await supabase.from("products").delete().eq("codigo", codigo);
     if (error) toast.error("Erro: " + error.message);
     else { toast.success("Produto excluído"); loadProducts(); }
