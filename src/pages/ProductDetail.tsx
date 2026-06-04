@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useParams, Link, Navigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -64,8 +65,41 @@ export default function ProductDetail() {
     }).format(price);
   };
 
+  const canonical = `https://app.brechodavez.com.br/p/${product.codigo}`;
+  const availability =
+    product.status === 'Disponível' ? 'https://schema.org/InStock'
+    : product.status === 'Reservado' ? 'https://schema.org/PreOrder'
+    : 'https://schema.org/SoldOut';
+  const productJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: product.nome,
+    sku: product.codigo,
+    description: product.descricao,
+    image: [product.url_capa, product.url_galeria_1, product.url_galeria_2, product.url_galeria_3].filter(Boolean),
+    brand: product.marca ? { '@type': 'Brand', name: product.marca } : undefined,
+    offers: {
+      '@type': 'Offer',
+      price: product.preco_brl,
+      priceCurrency: 'BRL',
+      availability,
+      url: canonical,
+    },
+  };
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
+      <Helmet>
+        <title>{`${product.nome} — Brechó da Vez`}</title>
+        <meta name="description" content={(product.descricao || '').slice(0, 155)} />
+        <link rel="canonical" href={canonical} />
+        <meta property="og:title" content={product.nome} />
+        <meta property="og:description" content={(product.descricao || '').slice(0, 155)} />
+        <meta property="og:type" content="product" />
+        <meta property="og:url" content={canonical} />
+        {product.url_capa && <meta property="og:image" content={product.url_capa} />}
+        <script type="application/ld+json">{JSON.stringify(productJsonLd)}</script>
+      </Helmet>
       {/* Header */}
       <header className="border-b border-border bg-card">
         <div className="container mx-auto px-4 py-4">
@@ -77,9 +111,9 @@ export default function ProductDetail() {
               </Link>
             </Button>
             <div className="flex-1">
-              <h1 className="font-display text-2xl font-medium text-foreground">
+              <p className="font-display text-2xl font-medium text-foreground">
                 Brechó da Vez
-              </h1>
+              </p>
               <p className="text-muted-foreground font-body text-sm">
                 Peças com história, novo amor
               </p>
@@ -251,6 +285,8 @@ export default function ProductDetail() {
                       <img
                         src={relatedProduct.url_capa || '/placeholder.svg'}
                         alt={relatedProduct.nome}
+                        loading="lazy"
+                        decoding="async"
                         className="w-full h-full object-cover"
                       />
                       <div className="absolute top-3 right-3">
