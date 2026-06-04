@@ -5,16 +5,20 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, Upload } from "lucide-react";
 import { toast } from "sonner";
 
 const BUCKET = "product-images";
 
+type Frequencia = "sessao" | "dia" | "sempre";
+
 export function PopupManager() {
   const [id, setId] = useState<string | null>(null);
   const [form, setForm] = useState({
     titulo: "", mensagem: "", imagem_url: "", cta_texto: "", cta_url: "", ativo: false,
+    frequencia: "sessao" as Frequencia,
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -31,6 +35,7 @@ export function PopupManager() {
       setForm({
         titulo: data.titulo || "", mensagem: data.mensagem || "", imagem_url: data.imagem_url || "",
         cta_texto: data.cta_texto || "", cta_url: data.cta_url || "", ativo: !!data.ativo,
+        frequencia: ((data as any).frequencia as Frequencia) || "sessao",
       });
     }
     setLoading(false);
@@ -80,6 +85,17 @@ export function PopupManager() {
         <div className="grid grid-cols-2 gap-3">
           <div><Label>Texto do botão</Label><Input value={form.cta_texto} onChange={(e) => setForm({ ...form, cta_texto: e.target.value })} placeholder="Ver coleção" /></div>
           <div><Label>Link do botão</Label><Input value={form.cta_url} onChange={(e) => setForm({ ...form, cta_url: e.target.value })} placeholder="https://..." /></div>
+        </div>
+        <div>
+          <Label>Frequência de exibição</Label>
+          <Select value={form.frequencia} onValueChange={(v) => setForm({ ...form, frequencia: v as Frequencia })}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="sessao">1x por sessão</SelectItem>
+              <SelectItem value="dia">1x por dia</SelectItem>
+              <SelectItem value="sempre">Sempre (toda visita)</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <div className="flex items-center gap-2"><Switch checked={form.ativo} onCheckedChange={(v) => setForm({ ...form, ativo: v })} /><Label>Ativo</Label></div>
         <Button type="submit" disabled={saving}>{saving && <Loader2 className="animate-spin" />}Salvar</Button>

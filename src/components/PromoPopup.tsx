@@ -3,7 +3,32 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { usePopup } from "@/hooks/usePopup";
 
-const SESSION_KEY = "bdv_popup_seen";
+const STORAGE_KEY = "bdv_popup_seen";
+
+function shouldShow(popupId: string, frequencia: string): boolean {
+  try {
+    if (frequencia === "sempre") return true;
+    if (frequencia === "sessao") {
+      return sessionStorage.getItem(STORAGE_KEY) !== popupId;
+    }
+    // dia
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return true;
+    const [seenId, ts] = raw.split("|");
+    if (seenId !== popupId) return true;
+    const ageMs = Date.now() - Number(ts || 0);
+    return ageMs > 24 * 60 * 60 * 1000;
+  } catch {
+    return true;
+  }
+}
+
+function markSeen(popupId: string, frequencia: string) {
+  try {
+    if (frequencia === "sessao") sessionStorage.setItem(STORAGE_KEY, popupId);
+    else if (frequencia === "dia") localStorage.setItem(STORAGE_KEY, `${popupId}|${Date.now()}`);
+  } catch {}
+}
 
 export function PromoPopup() {
   const { popup } = usePopup();
@@ -11,15 +36,12 @@ export function PromoPopup() {
 
   useEffect(() => {
     if (!popup) return;
-    try {
-      const seen = sessionStorage.getItem(SESSION_KEY);
-      if (seen === popup.id) return;
-      const t = setTimeout(() => {
-        setOpen(true);
-        sessionStorage.setItem(SESSION_KEY, popup.id);
-      }, 1200);
-      return () => clearTimeout(t);
-    } catch {}
+    if (!shouldShow(popup.id, popup.frequencia || "sessao")) return;
+    const t = setTimeout(() => {
+      setOpen(true);
+      markSeen(popup.id, popup.frequencia || "sessao");
+    }, 1200);
+    return () => clearTimeout(t);
   }, [popup]);
 
   if (!popup) return null;
