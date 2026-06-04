@@ -298,17 +298,17 @@ export default function Admin() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filtered.length === 0 && (
+                    {paged.length === 0 && (
                       <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Nenhum produto</TableCell></TableRow>
                     )}
-                    {filtered.map((p) => (
+                    {paged.map((p) => (
                       <TableRow key={p.codigo} data-state={selected.has(p.codigo) ? "selected" : undefined}>
                         <TableCell>
                           <Checkbox checked={selected.has(p.codigo)} onCheckedChange={() => toggleOne(p.codigo)} />
                         </TableCell>
                         <TableCell>
                           {p.url_capa ? (
-                            <img src={p.url_capa} alt={p.nome} className="w-12 h-12 object-cover rounded" />
+                            <img src={p.url_capa} alt={p.nome} className="w-12 h-12 object-cover rounded" loading="lazy" />
                           ) : (
                             <div className="w-12 h-12 bg-muted rounded" />
                           )}
@@ -328,13 +328,13 @@ export default function Admin() {
                           </Select>
                         </TableCell>
                         <TableCell className="text-right">
-                          <Button size="icon" variant="ghost" onClick={() => handleDuplicate(p)} title="Duplicar">
+                          <Button size="icon" variant="ghost" onClick={() => handleDuplicate(p)} title="Duplicar" aria-label="Duplicar">
                             <Copy />
                           </Button>
-                          <Button size="icon" variant="ghost" onClick={() => { setEditing(p); setDuplicating(null); setShowForm(true); }} title="Editar">
+                          <Button size="icon" variant="ghost" onClick={() => { setEditing(p); setDuplicating(null); setShowForm(true); }} title="Editar" aria-label="Editar">
                             <Pencil />
                           </Button>
-                          <Button size="icon" variant="ghost" onClick={() => handleDelete(p.codigo)} title="Excluir">
+                          <Button size="icon" variant="ghost" onClick={() => handleDelete(p.codigo)} title="Excluir" aria-label="Excluir">
                             <Trash2 />
                           </Button>
                         </TableCell>
@@ -342,6 +342,18 @@ export default function Admin() {
                     ))}
                   </TableBody>
                 </Table>
+              )}
+              {!loadingProducts && filtered.length > PAGE_SIZE && (
+                <div className="flex items-center justify-between px-4 py-3 border-t border-border text-sm">
+                  <span className="text-muted-foreground">
+                    {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, filtered.length)} de {filtered.length}
+                  </span>
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="outline" disabled={currentPage <= 1} onClick={() => setPage(currentPage - 1)}>Anterior</Button>
+                    <span className="self-center text-muted-foreground">página {currentPage} de {totalPages}</span>
+                    <Button size="sm" variant="outline" disabled={currentPage >= totalPages} onClick={() => setPage(currentPage + 1)}>Próxima</Button>
+                  </div>
+                </div>
               )}
             </div>
           </TabsContent>
