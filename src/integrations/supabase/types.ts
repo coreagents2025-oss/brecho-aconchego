@@ -86,6 +86,7 @@ export type Database = {
           created_at: string
           cta_texto: string
           cta_url: string
+          frequencia: string
           id: string
           imagem_url: string
           mensagem: string
@@ -97,6 +98,7 @@ export type Database = {
           created_at?: string
           cta_texto?: string
           cta_url?: string
+          frequencia?: string
           id?: string
           imagem_url?: string
           mensagem?: string
@@ -108,6 +110,7 @@ export type Database = {
           created_at?: string
           cta_texto?: string
           cta_url?: string
+          frequencia?: string
           id?: string
           imagem_url?: string
           mensagem?: string

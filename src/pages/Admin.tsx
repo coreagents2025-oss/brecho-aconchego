@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -21,8 +21,13 @@ import { Product } from "@/types/product";
 import { Loader2, Plus, Pencil, Trash2, Download, LogOut, ExternalLink, Copy } from "lucide-react";
 import { toast } from "sonner";
 
+const VALID_TABS = ["dashboard", "produtos", "vendas", "banners", "popup"] as const;
+type TabValue = typeof VALID_TABS[number];
+const PAGE_SIZE = 25;
+
 export default function Admin() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user, isAdmin, loading, signOut } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
@@ -36,6 +41,17 @@ export default function Admin() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [saleProduct, setSaleProduct] = useState<Product | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [page, setPage] = useState(1);
+
+  const tabParam = searchParams.get("tab");
+  const activeTab: TabValue = (VALID_TABS as readonly string[]).includes(tabParam || "")
+    ? (tabParam as TabValue)
+    : "dashboard";
+  const setActiveTab = (v: string) => {
+    const next = new URLSearchParams(searchParams);
+    next.set("tab", v);
+    setSearchParams(next, { replace: true });
+  };
 
   useEffect(() => {
     if (!loading && (!user || !isAdmin)) navigate("/auth");
@@ -58,7 +74,15 @@ export default function Admin() {
   }
 
   async function handleDelete(codigo: string) {
-    if (!confirm(`Excluir produto ${codigo}?`)) return;
+    const { count } = await supabase
+      .from("sales")
+      .select("id", { count: "exact", head: true })
+      .eq("product_codigo", codigo);
+    const salesCount = count ?? 0;
+    const msg = salesCount > 0
+      ? `Atenção: este produto tem ${salesCount} venda(s) registrada(s). Ao excluir, os registros de venda continuarão (sem vínculo). Confirmar exclusão de ${codigo}?`
+      : `Excluir produto ${codigo}?`;
+    if (!confirm(msg)) return;
     const { error } = await supabase.from("products").delete().eq("codigo", codigo);
     if (error) toast.error("Erro: " + error.message);
     else { toast.success("Produto excluído"); loadProducts(); }
@@ -147,7 +171,7 @@ export default function Admin() {
   }
 
 
-  const filtered = products.filter((p) => {
+  const filtered = useMemo(() => products.filter((p) => {
     if (statusFilter !== "all" && p.status !== statusFilter) return false;
     if (categoryFilter !== "all" && p.categoria !== categoryFilter) return false;
     if (search) {
@@ -159,17 +183,23 @@ export default function Admin() {
       );
     }
     return true;
-  });
+  }), [products, statusFilter, categoryFilter, search]);
 
-  const allChecked = filtered.length > 0 && filtered.every((p) => selected.has(p.codigo));
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const paged = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+  useEffect(() => { setPage(1); }, [search, statusFilter, categoryFilter]);
+
+  const allChecked = paged.length > 0 && paged.every((p) => selected.has(p.codigo));
   const toggleAll = () => {
     if (allChecked) {
       const next = new Set(selected);
-      filtered.forEach((p) => next.delete(p.codigo));
+      paged.forEach((p) => next.delete(p.codigo));
       setSelected(next);
     } else {
       const next = new Set(selected);
-      filtered.forEach((p) => next.add(p.codigo));
+      paged.forEach((p) => next.add(p.codigo));
       setSelected(next);
     }
   };
@@ -201,7 +231,7 @@ export default function Admin() {
       <div className="container mx-auto px-6 py-6 space-y-6">
         <MetricsBar refreshKey={refreshKey} />
 
-        <Tabs defaultValue="dashboard">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList>
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
             <TabsTrigger value="produtos">Produtos</TabsTrigger>
@@ -268,17 +298,17 @@ export default function Admin() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filtered.length === 0 && (
+                    {paged.length === 0 && (
                       <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Nenhum produto</TableCell></TableRow>
                     )}
-                    {filtered.map((p) => (
+                    {paged.map((p) => (
                       <TableRow key={p.codigo} data-state={selected.has(p.codigo) ? "selected" : undefined}>
                         <TableCell>
                           <Checkbox checked={selected.has(p.codigo)} onCheckedChange={() => toggleOne(p.codigo)} />
                         </TableCell>
                         <TableCell>
                           {p.url_capa ? (
-                            <img src={p.url_capa} alt={p.nome} className="w-12 h-12 object-cover rounded" />
+                            <img src={p.url_capa} alt={p.nome} className="w-12 h-12 object-cover rounded" loading="lazy" />
                           ) : (
                             <div className="w-12 h-12 bg-muted rounded" />
                           )}
@@ -298,13 +328,13 @@ export default function Admin() {
                           </Select>
                         </TableCell>
                         <TableCell className="text-right">
-                          <Button size="icon" variant="ghost" onClick={() => handleDuplicate(p)} title="Duplicar">
+                          <Button size="icon" variant="ghost" onClick={() => handleDuplicate(p)} title="Duplicar" aria-label="Duplicar">
                             <Copy />
                           </Button>
-                          <Button size="icon" variant="ghost" onClick={() => { setEditing(p); setDuplicating(null); setShowForm(true); }} title="Editar">
+                          <Button size="icon" variant="ghost" onClick={() => { setEditing(p); setDuplicating(null); setShowForm(true); }} title="Editar" aria-label="Editar">
                             <Pencil />
                           </Button>
-                          <Button size="icon" variant="ghost" onClick={() => handleDelete(p.codigo)} title="Excluir">
+                          <Button size="icon" variant="ghost" onClick={() => handleDelete(p.codigo)} title="Excluir" aria-label="Excluir">
                             <Trash2 />
                           </Button>
                         </TableCell>
@@ -312,6 +342,18 @@ export default function Admin() {
                     ))}
                   </TableBody>
                 </Table>
+              )}
+              {!loadingProducts && filtered.length > PAGE_SIZE && (
+                <div className="flex items-center justify-between px-4 py-3 border-t border-border text-sm">
+                  <span className="text-muted-foreground">
+                    {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, filtered.length)} de {filtered.length}
+                  </span>
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="outline" disabled={currentPage <= 1} onClick={() => setPage(currentPage - 1)}>Anterior</Button>
+                    <span className="self-center text-muted-foreground">página {currentPage} de {totalPages}</span>
+                    <Button size="sm" variant="outline" disabled={currentPage >= totalPages} onClick={() => setPage(currentPage + 1)}>Próxima</Button>
+                  </div>
+                </div>
               )}
             </div>
           </TabsContent>

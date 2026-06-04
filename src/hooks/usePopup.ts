@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
+export type PopupFrequencia = "sessao" | "dia" | "sempre";
+
 export interface PopupData {
   id: string;
   titulo: string;
@@ -9,6 +11,7 @@ export interface PopupData {
   cta_texto: string;
   cta_url: string;
   ativo: boolean;
+  frequencia: PopupFrequencia;
 }
 
 export function usePopup() {
