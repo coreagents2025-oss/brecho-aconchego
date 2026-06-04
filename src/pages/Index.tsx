@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
 import { ProductCard } from '@/components/ProductCard';
 import { FiltersBar } from '@/components/FiltersBar';
@@ -58,7 +59,14 @@ export default function Index() {
   }, [products, searchQuery, selectedCategory, selectedSize, selectedStatus, showSoldItems]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
+      <Helmet>
+        <title>Brechó da Vez — Peças com história, novo amor</title>
+        <meta name="description" content="Catálogo digital do Brechó da Vez: roupas e acessórios vintage selecionados com carinho, prontos para um novo lar." />
+        <link rel="canonical" href="https://app.brechodavez.com.br/" />
+        <meta property="og:title" content="Brechó da Vez — Peças com história, novo amor" />
+        <meta property="og:url" content="https://app.brechodavez.com.br/" />
+      </Helmet>
       <PromoPopup />
       {/* Hero Section */}
       <section className="relative">
