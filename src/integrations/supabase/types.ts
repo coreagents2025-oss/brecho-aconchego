@@ -285,7 +285,15 @@ export type Database = {
           product_codigo?: string | null
           session_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_clicks_product_codigo_fkey"
+            columns: ["product_codigo"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["codigo"]
+          },
+        ]
       }
     }
     Views: {
@@ -307,6 +315,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      purge_old_tracking: { Args: never; Returns: undefined }
       top_products: {
         Args: { days?: number }
         Returns: {
