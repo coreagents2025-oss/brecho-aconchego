@@ -34,6 +34,8 @@ export function ProductCard({ product, className }: ProductCardProps) {
               alt={`${product.nome} — ${product.categoria}`}
               loading="lazy"
               decoding="async"
+              width={600}
+              height={800}
               className="w-full h-full object-cover group-hover:scale-105 transition-smooth"
               onError={(e) => {
                 e.currentTarget.style.display = 'none';
