@@ -1,10 +1,15 @@
 import { Link } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import { Home, Search } from "lucide-react";
 
 const NotFound = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/5 flex items-center justify-center px-4">
+    <main className="min-h-dvh bg-gradient-to-br from-background via-background to-secondary/5 flex items-center justify-center px-4">
+      <Helmet>
+        <title>Página não encontrada — Brechó da Vez</title>
+        <meta name="robots" content="noindex" />
+      </Helmet>
       <div className="max-w-2xl mx-auto text-center space-y-8">
         {/* Logo/Brand Section */}
         <div className="space-y-4">
@@ -53,7 +58,7 @@ const NotFound = () => {
           </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 };
 
