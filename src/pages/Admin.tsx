@@ -171,7 +171,7 @@ export default function Admin() {
   }
 
 
-  const filtered = products.filter((p) => {
+  const filtered = useMemo(() => products.filter((p) => {
     if (statusFilter !== "all" && p.status !== statusFilter) return false;
     if (categoryFilter !== "all" && p.categoria !== categoryFilter) return false;
     if (search) {
@@ -183,17 +183,23 @@ export default function Admin() {
       );
     }
     return true;
-  });
+  }), [products, statusFilter, categoryFilter, search]);
 
-  const allChecked = filtered.length > 0 && filtered.every((p) => selected.has(p.codigo));
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const paged = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+  useEffect(() => { setPage(1); }, [search, statusFilter, categoryFilter]);
+
+  const allChecked = paged.length > 0 && paged.every((p) => selected.has(p.codigo));
   const toggleAll = () => {
     if (allChecked) {
       const next = new Set(selected);
-      filtered.forEach((p) => next.delete(p.codigo));
+      paged.forEach((p) => next.delete(p.codigo));
       setSelected(next);
     } else {
       const next = new Set(selected);
-      filtered.forEach((p) => next.add(p.codigo));
+      paged.forEach((p) => next.add(p.codigo));
       setSelected(next);
     }
   };
@@ -225,7 +231,7 @@ export default function Admin() {
       <div className="container mx-auto px-6 py-6 space-y-6">
         <MetricsBar refreshKey={refreshKey} />
 
-        <Tabs defaultValue="dashboard">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList>
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
             <TabsTrigger value="produtos">Produtos</TabsTrigger>
