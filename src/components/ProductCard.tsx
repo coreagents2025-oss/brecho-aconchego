@@ -1,6 +1,7 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { StatusBadge } from './StatusBadge';
 import { WhatsAppButton } from './WhatsAppButton';
+import { AddToCartButton } from './AddToCartButton';
 import { Product } from '@/types/product';
 
 import { Link } from 'react-router-dom';
@@ -82,13 +83,16 @@ export function ProductCard({ product, className }: ProductCardProps) {
           </div>
         </Link>
         
-        <WhatsAppButton
-          codigo={product.codigo}
-          tamanho={product.tamanho}
-          status={product.status}
-          productUrl={`${window.location.origin}/p/${product.codigo}`}
-          size="sm"
-        />
+        <div className="space-y-2">
+          <WhatsAppButton
+            codigo={product.codigo}
+            tamanho={product.tamanho}
+            status={product.status}
+            productUrl={`${window.location.origin}/p/${product.codigo}`}
+            size="sm"
+          />
+          <AddToCartButton product={product} size="sm" />
+        </div>
       </CardContent>
     </Card>
   );
