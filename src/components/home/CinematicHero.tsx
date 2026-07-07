@@ -31,7 +31,14 @@ export function CinematicHero({ banners }: Props) {
           className="w-full h-full object-cover"
           style={{ animation: 'kenburns 24s ease-in-out infinite alternate' }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-cream/70 via-cream/40 to-cream/90" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/30 to-background/85" />
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              'radial-gradient(ellipse at center, hsl(var(--background) / 0.55) 0%, transparent 65%)',
+          }}
+        />
       </div>
 
       <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-secondary/10 blur-[120px] rounded-full animate-pulse pointer-events-none" />
@@ -40,22 +47,25 @@ export function CinematicHero({ banners }: Props) {
       <div className="relative z-10 text-center px-6 -mt-10 md:-mt-20 w-full flex flex-col items-center justify-center">
         <div className="overflow-hidden mb-4 md:mb-6">
           <span
-            className="block text-[10px] md:text-xs text-secondary uppercase reveal tracking-[0.4em] md:tracking-[0.8em] font-body font-semibold"
+            className="block text-[10px] md:text-xs text-foreground/80 uppercase reveal tracking-[0.4em] md:tracking-[0.8em] font-body font-semibold drop-shadow-sm"
             style={{ animationDelay: '0.2s' }}
           >
             {active?.subtitulo || 'desde 2024 · curadoria feminina'}
           </span>
         </div>
 
-        <h1 className="font-display text-5xl sm:text-7xl md:text-[8rem] lg:text-[10rem] leading-[0.9] text-foreground flex flex-col items-center tracking-tight">
+        <h1 className="font-display text-5xl sm:text-7xl md:text-[8rem] lg:text-[9rem] leading-[0.9] text-foreground flex flex-col items-center tracking-tight">
           <span className="overflow-hidden w-full flex justify-center">
-            <span className="block reveal font-medium" style={{ animationDelay: '0.4s' }}>
+            <span
+              className="block reveal font-medium drop-shadow-[0_2px_20px_hsl(var(--background)/0.6)]"
+              style={{ animationDelay: '0.4s' }}
+            >
               {active?.titulo?.split(' ')[0] || 'Brechó'}
             </span>
           </span>
           <span className="overflow-hidden w-full flex justify-center mt-1 md:mt-2">
             <span
-              className="block italic font-light text-secondary reveal"
+              className="block italic font-normal text-foreground/90 reveal drop-shadow-[0_2px_20px_hsl(var(--background)/0.6)]"
               style={{ animationDelay: '0.6s' }}
             >
               {active?.titulo?.split(' ').slice(1).join(' ') || 'da Vez'}
@@ -65,7 +75,7 @@ export function CinematicHero({ banners }: Props) {
 
         <div className="mt-6 md:mt-10 overflow-hidden w-full flex justify-center">
           <p
-            className="font-body text-muted-foreground text-center text-sm md:text-lg max-w-xl font-light leading-relaxed tracking-wide reveal"
+            className="font-body text-foreground/75 text-center text-sm md:text-lg max-w-xl font-light leading-relaxed tracking-wide reveal drop-shadow-sm"
             style={{ animationDelay: '0.8s' }}
           >
             Vestidos, blusas, saias e acessórios vintage — escolhidos a dedo, com história e alma feminina.
@@ -83,10 +93,11 @@ export function CinematicHero({ banners }: Props) {
           <button
             type="button"
             onClick={() => document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' })}
-            className="bg-background/40 backdrop-blur-sm border border-foreground/30 text-foreground py-4 px-10 font-body text-[10px] uppercase tracking-[0.4em] font-medium hover:bg-foreground hover:text-background hover:border-foreground transition-colors duration-300"
+            className="bg-background/60 backdrop-blur-sm border border-foreground/30 text-foreground py-4 px-10 font-body text-[10px] uppercase tracking-[0.4em] font-medium hover:bg-foreground hover:text-background hover:border-foreground transition-colors duration-300"
           >
             Catálogo completo
           </button>
+
         </div>
       </div>
 
