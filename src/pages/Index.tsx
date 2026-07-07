@@ -116,7 +116,7 @@ export default function Index() {
       <HorizontalCollection products={overviewProducts} />
 
       {/* Full catalog */}
-      <section id="catalog" className="bg-background px-6 md:px-10 py-24 md:py-32">
+      <section id="catalog" className="bg-background px-6 md:px-10 pt-16 md:pt-20 pb-24 md:pb-32">
         <div className="max-w-6xl mx-auto">
           <FiltersBar
             searchQuery={searchQuery}
