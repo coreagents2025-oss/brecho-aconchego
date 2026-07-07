@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react';
 import { animate, stagger } from 'animejs';
-import { ArrowDown } from 'lucide-react';
 import { Product } from '@/types/product';
 import { MinimalProductCard } from './MinimalProductCard';
 
@@ -64,10 +63,10 @@ export function HorizontalCollection({ products }: Props) {
   if (products.length === 0) return null;
 
   return (
-    <div ref={rootRef} className="bg-background w-full pt-16 pb-8 border-t border-border">
-      <div className="w-full max-w-7xl mx-auto px-4">
-        <div className="flex items-end justify-between border-b border-border pb-4 mb-8">
-          <span className="text-[10px] font-semibold tracking-[0.3em] text-secondary uppercase font-body">
+    <div ref={rootRef} className="bg-background w-full py-24 md:py-32 border-t border-foreground/10">
+      <div className="w-full max-w-6xl mx-auto px-6 md:px-10">
+        <div className="flex items-end justify-between border-b border-foreground/10 pb-6 mb-12">
+          <span className="text-[10px] font-medium tracking-[0.4em] text-muted-foreground uppercase font-body">
             Panorama
           </span>
           <a
@@ -76,31 +75,30 @@ export function HorizontalCollection({ products }: Props) {
               e.preventDefault();
               document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' });
             }}
-            className="group inline-flex items-center gap-2 text-xs font-semibold uppercase text-foreground hover:text-secondary transition-colors font-body"
+            className="font-body text-[10px] uppercase tracking-[0.3em] text-foreground border-b border-foreground/20 pb-1 hover:border-secondary hover:text-secondary transition-colors"
           >
-            <span className="tracking-[0.3em]">Ver catálogo</span>
-            <ArrowDown className="w-3.5 h-3.5" />
+            Ver catálogo
           </a>
         </div>
 
         <div
           ref={scrollRef}
-          className="flex overflow-x-auto gap-4 md:gap-8 pb-8 no-scrollbar snap-x snap-mandatory"
+          className="flex overflow-x-auto gap-6 md:gap-10 pb-8 no-scrollbar snap-x snap-mandatory"
         >
           {products.map((p) => (
             <div
               key={p.codigo}
-              className="anime-card w-[calc(75%-8px)] min-w-[calc(75%-8px)] sm:w-[calc(45%-12px)] sm:min-w-[calc(45%-12px)] md:w-[300px] md:min-w-[300px] md:max-w-[320px] snap-center flex-shrink-0 opacity-0"
+              className="anime-card w-[calc(75%-12px)] min-w-[calc(75%-12px)] sm:w-[calc(45%-16px)] sm:min-w-[calc(45%-16px)] md:w-[300px] md:min-w-[300px] md:max-w-[320px] snap-center flex-shrink-0 opacity-0"
             >
               <MinimalProductCard product={p} />
             </div>
           ))}
         </div>
 
-        <div className="w-24 h-[2px] bg-foreground/10 mx-auto mt-2 rounded-full overflow-hidden relative">
+        <div className="w-24 h-[1px] bg-foreground/10 mx-auto mt-4 relative overflow-hidden">
           <div
             ref={indicatorRef}
-            className="h-full bg-secondary w-8 rounded-full absolute left-0 transition-all duration-75"
+            className="h-full bg-foreground w-8 absolute left-0 transition-all duration-75"
           />
         </div>
       </div>
