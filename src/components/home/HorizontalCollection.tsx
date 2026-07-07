@@ -94,7 +94,7 @@ export function HorizontalCollection({ products }: Props) {
           {products.map((p) => (
             <div
               key={p.codigo}
-              className="anime-card w-[calc(75%-12px)] min-w-[calc(75%-12px)] sm:w-[calc(45%-16px)] sm:min-w-[calc(45%-16px)] md:w-[300px] md:min-w-[300px] md:max-w-[320px] snap-center flex-shrink-0 opacity-0"
+              className="anime-card w-[calc(75%-12px)] min-w-[calc(75%-12px)] sm:w-[calc(45%-16px)] sm:min-w-[calc(45%-16px)] md:w-[300px] md:min-w-[300px] md:max-w-[320px] snap-center flex-shrink-0"
             >
               <MinimalProductCard product={p} />
             </div>
