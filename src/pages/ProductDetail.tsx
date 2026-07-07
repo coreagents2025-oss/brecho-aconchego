@@ -9,6 +9,8 @@ import { ArrowLeft, Ruler, Tag, Calendar, Package } from 'lucide-react';
 import { ProductGallery } from '@/components/ProductGallery';
 import { StatusBadge } from '@/components/StatusBadge';
 import { WhatsAppButton } from '@/components/WhatsAppButton';
+import { AddToCartButton } from '@/components/AddToCartButton';
+import { CartButton } from '@/components/CartButton';
 import { useProducts } from '@/hooks/useProducts';
 import { trackProductView } from '@/lib/tracking';
 import mockup1 from '@/assets/mockup-1.jpg';
@@ -118,6 +120,7 @@ export default function ProductDetail() {
                 Peças com história, novo amor
               </p>
             </div>
+            <CartButton />
           </div>
         </div>
       </header>
@@ -168,13 +171,16 @@ export default function ProductDetail() {
               </p>
             </div>
 
-            {/* CTA Button */}
-            <WhatsAppButton
-              codigo={product.codigo}
-              tamanho={product.tamanho}
-              status={product.status}
-              size="lg"
-            />
+            {/* CTA Buttons */}
+            <div className="space-y-3">
+              <WhatsAppButton
+                codigo={product.codigo}
+                tamanho={product.tamanho}
+                status={product.status}
+                size="lg"
+              />
+              <AddToCartButton product={product} size="lg" />
+            </div>
 
             <Separator />
 

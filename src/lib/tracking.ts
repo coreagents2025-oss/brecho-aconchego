@@ -55,3 +55,21 @@ export async function trackWhatsAppClick(codigo?: string) {
     });
   } catch {}
 }
+
+export async function trackAddToCart(codigo: string) {
+  try {
+    await supabase.from("product_views").insert({
+      product_codigo: codigo,
+      session_id: getSessionId(),
+    });
+  } catch {}
+}
+
+export async function trackCartCheckout(_count: number) {
+  try {
+    await supabase.from("whatsapp_clicks").insert({
+      product_codigo: null,
+      session_id: getSessionId(),
+    });
+  } catch {}
+}

@@ -9,6 +9,8 @@ import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import { usePageViewTracker } from "@/hooks/useTracking";
+import { CartProvider } from "@/contexts/CartContext";
+import { CartDrawer } from "@/components/CartDrawer";
 
 const queryClient = new QueryClient();
 
@@ -31,7 +33,10 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <TrackedRoutes />
+        <CartProvider>
+          <TrackedRoutes />
+          <CartDrawer />
+        </CartProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
