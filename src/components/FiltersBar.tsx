@@ -1,12 +1,7 @@
-import { useState } from 'react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { Search, Filter, X } from 'lucide-react';
-import { categories, sizes } from '@/data/mockData';
+import { Search } from 'lucide-react';
+import { sizes as defaultSizes } from '@/data/mockData';
 import { ProductStatus } from '@/types/product';
+import { cn } from '@/lib/utils';
 
 interface FiltersBarProps {
   searchQuery: string;
@@ -19,6 +14,8 @@ interface FiltersBarProps {
   onStatusChange: (status: ProductStatus | 'all') => void;
   showSoldItems: boolean;
   onShowSoldChange: (show: boolean) => void;
+  availableCategories?: string[];
+  availableSizes?: string[];
 }
 
 export function FiltersBar({
@@ -28,140 +25,97 @@ export function FiltersBar({
   onCategoryChange,
   selectedSize,
   onSizeChange,
-  selectedStatus,
-  onStatusChange,
   showSoldItems,
   onShowSoldChange,
+  availableCategories,
+  availableSizes,
 }: FiltersBarProps) {
-  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+  const categoryList = availableCategories ?? [];
+  const sizeList = availableSizes ?? defaultSizes;
 
-  const hasActiveFilters = selectedCategory !== 'all' || selectedSize !== 'all' || selectedStatus !== 'all' || searchQuery.length > 0;
-
-  const clearFilters = () => {
-    onSearchChange('');
-    onCategoryChange('all');
-    onSizeChange('all');
-    onStatusChange('all');
-    onShowSoldChange(true);
-  };
+  const categoryTabs: { value: string; label: string }[] = [
+    { value: 'all', label: 'Coleção completa' },
+    ...categoryList.map((c) => ({ value: c, label: c })),
+  ];
 
   return (
-    <div className="bg-card border border-border rounded-2xl p-6 shadow-card">
-      {/* Search Bar */}
-      <div className="relative mb-4">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-        <Input
-          placeholder="Buscar por nome, código ou tags..."
-          value={searchQuery}
-          onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-10 bg-background border-border font-body"
-        />
+    <div className="border-b border-foreground/10 pb-10 mb-16 flex flex-col md:flex-row md:justify-between md:items-end gap-8">
+      {/* Left: title + category nav */}
+      <div className="space-y-6 min-w-0">
+        <h2 className="font-display italic text-4xl md:text-5xl leading-none text-foreground">
+          O Acervo
+        </h2>
+        <nav className="flex flex-wrap gap-x-8 gap-y-3">
+          {categoryTabs.map((tab) => {
+            const active = selectedCategory === tab.value;
+            return (
+              <button
+                key={tab.value}
+                type="button"
+                onClick={() => onCategoryChange(tab.value)}
+                className={cn(
+                  'font-body text-[11px] uppercase tracking-[0.25em] pb-1 border-b transition-colors',
+                  active
+                    ? 'text-foreground border-secondary font-semibold'
+                    : 'text-muted-foreground border-transparent hover:text-foreground'
+                )}
+              >
+                {tab.label}
+              </button>
+            );
+          })}
+        </nav>
       </div>
 
-      {/* Filters Toggle */}
-      <div className="flex items-center justify-between mb-4">
-        <Button
-          variant="outline"
-          onClick={() => setIsFiltersOpen(!isFiltersOpen)}
-          className="font-body"
+      {/* Right: search + size + sold toggle */}
+      <div className="flex flex-wrap items-end gap-6 md:gap-8 md:justify-end">
+        <label className="relative border-b border-foreground/20 py-2 flex items-center gap-2 focus-within:border-secondary transition-colors">
+          <Search className="w-3 h-3 text-muted-foreground" strokeWidth={1.5} />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
+            placeholder="BUSCAR..."
+            className="bg-transparent font-body text-[11px] tracking-[0.2em] outline-none placeholder:text-muted-foreground/60 w-28 focus:w-48 transition-[width] duration-500"
+          />
+        </label>
+
+        <select
+          value={selectedSize}
+          onChange={(e) => onSizeChange(e.target.value)}
+          className="font-body text-[11px] uppercase tracking-[0.2em] bg-transparent border-b border-foreground/20 pb-2 cursor-pointer outline-none text-muted-foreground hover:text-foreground focus:border-secondary transition-colors"
+          aria-label="Filtrar por tamanho"
         >
-          <Filter className="w-4 h-4 mr-2" />
-          Filtros
-          {hasActiveFilters && (
-            <span className="ml-2 bg-secondary text-secondary-foreground px-2 py-0.5 rounded-full text-xs">
-              Ativos
-            </span>
-          )}
-        </Button>
+          <option value="all">Tamanho</option>
+          {sizeList.map((size) => (
+            <option key={size} value={size}>
+              {size}
+            </option>
+          ))}
+        </select>
 
-        {hasActiveFilters && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={clearFilters}
-            className="text-muted-foreground hover:text-foreground font-body"
+        <button
+          type="button"
+          onClick={() => onShowSoldChange(!showSoldItems)}
+          className="font-body text-[11px] uppercase tracking-[0.2em] flex items-center gap-3 text-muted-foreground hover:text-foreground pb-2 border-b border-transparent transition-colors"
+          aria-pressed={!showSoldItems}
+        >
+          <span
+            className={cn(
+              'w-3 h-3 rounded-full border flex items-center justify-center transition-colors',
+              !showSoldItems ? 'border-secondary' : 'border-foreground/30'
+            )}
           >
-            <X className="w-4 h-4 mr-1" />
-            Limpar
-          </Button>
-        )}
-      </div>
-
-      {/* Filters Content */}
-      {isFiltersOpen && (
-        <div className="space-y-4 border-t border-border pt-4">
-          {/* Category and Size Filters */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label className="text-sm font-body font-medium text-foreground mb-2 block">
-                Categoria
-              </Label>
-              <Select value={selectedCategory} onValueChange={onCategoryChange}>
-                <SelectTrigger className="font-body">
-                  <SelectValue placeholder="Todas as categorias" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas as categorias</SelectItem>
-                  {categories.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label className="text-sm font-body font-medium text-foreground mb-2 block">
-                Tamanho
-              </Label>
-              <Select value={selectedSize} onValueChange={onSizeChange}>
-                <SelectTrigger className="font-body">
-                  <SelectValue placeholder="Todos os tamanhos" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos os tamanhos</SelectItem>
-                  {sizes.map((size) => (
-                    <SelectItem key={size} value={size}>
-                      {size}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* Status Filter */}
-          <div>
-            <Label className="text-sm font-body font-medium text-foreground mb-2 block">
-              Status
-            </Label>
-            <Select value={selectedStatus} onValueChange={onStatusChange}>
-              <SelectTrigger className="font-body">
-                <SelectValue placeholder="Todos os status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os status</SelectItem>
-                <SelectItem value="Disponível">Disponível</SelectItem>
-                <SelectItem value="Reservado">Reservado</SelectItem>
-                <SelectItem value="Vendido">Vendido</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Show Sold Items Toggle */}
-          <div className="flex items-center space-x-2 pt-2">
-            <Switch
-              id="show-sold"
-              checked={showSoldItems}
-              onCheckedChange={onShowSoldChange}
+            <span
+              className={cn(
+                'w-1.5 h-1.5 rounded-full transition-colors',
+                !showSoldItems ? 'bg-secondary' : 'bg-transparent'
+              )}
             />
-            <Label htmlFor="show-sold" className="text-sm font-body text-muted-foreground">
-              Mostrar peças que já encontraram novo lar
-            </Label>
-          </div>
-        </div>
-      )}
+          </span>
+          Ocultar vendidos
+        </button>
+      </div>
     </div>
   );
 }
