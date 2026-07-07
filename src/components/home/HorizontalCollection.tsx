@@ -63,7 +63,7 @@ export function HorizontalCollection({ products }: Props) {
   if (products.length === 0) return null;
 
   return (
-    <div ref={rootRef} className="bg-background w-full py-24 md:py-32 border-t border-foreground/10">
+    <div ref={rootRef} className="bg-background w-full pt-24 md:pt-32 pb-0 border-t border-foreground/10">
       <div className="w-full max-w-6xl mx-auto px-6 md:px-10">
         <div className="flex items-end justify-between border-b border-foreground/10 pb-6 mb-12">
           <span className="text-[10px] font-medium tracking-[0.4em] text-muted-foreground uppercase font-body">
