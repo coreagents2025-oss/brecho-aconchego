@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Button } from '@/components/ui/button';
 import { ProductCard } from '@/components/ProductCard';
 import { FiltersBar } from '@/components/FiltersBar';
 import { useProducts } from '@/hooks/useProducts';
@@ -33,6 +32,22 @@ export default function Index() {
     [availableProducts]
   );
 
+  const availableCategories = useMemo(
+    () =>
+      Array.from(new Set(products.map((p) => p.categoria).filter(Boolean))).sort((a, b) =>
+        a.localeCompare(b, 'pt-BR')
+      ),
+    [products]
+  );
+
+  const availableSizes = useMemo(
+    () =>
+      Array.from(new Set(products.map((p) => p.tamanho).filter(Boolean))).sort((a, b) =>
+        a.localeCompare(b, 'pt-BR', { numeric: true })
+      ),
+    [products]
+  );
+
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
       if (!showSoldItems && product.status === 'Vendido') return false;
@@ -53,11 +68,31 @@ export default function Index() {
     });
   }, [products, searchQuery, selectedCategory, selectedSize, selectedStatus, showSoldItems]);
 
+  const clearFilters = () => {
+    setSearchQuery('');
+    setSelectedCategory('all');
+    setSelectedSize('all');
+    setSelectedStatus('all');
+    setShowSoldItems(true);
+  };
+
+  const openConciergeWhatsApp = () => {
+    const message = encodeURIComponent(
+      'Oi! Estou procurando uma peça especial. Vocês podem me ajudar? 🤍'
+    );
+    const waNumber = import.meta.env.VITE_WA_NUMBER || '5541995299244';
+    trackWhatsAppClick();
+    window.open(`https://wa.me/${waNumber}?text=${message}`, '_blank');
+  };
+
   return (
     <div className="min-h-dvh bg-background">
       <Helmet>
         <title>Brechó da Vez — Moda feminina com alma e história</title>
-        <meta name="description" content="Loja online do Brechó da Vez: vestidos, blusas, saias e acessórios femininos vintage selecionados com carinho. Monte sua sacola e finalize pelo WhatsApp." />
+        <meta
+          name="description"
+          content="Loja online do Brechó da Vez: vestidos, blusas, saias e acessórios femininos vintage selecionados com carinho. Monte sua sacola e finalize pelo WhatsApp."
+        />
         <link rel="canonical" href="https://app.brechodavez.com.br/" />
         <meta property="og:title" content="Brechó da Vez — Moda feminina com alma e história" />
         <meta property="og:url" content="https://app.brechodavez.com.br/" />
@@ -81,21 +116,8 @@ export default function Index() {
       <HorizontalCollection products={overviewProducts} />
 
       {/* Full catalog */}
-      <main className="container mx-auto px-4 py-16" id="catalog">
-        <div className="text-center mb-10">
-          <span className="font-body text-xs tracking-[0.4em] uppercase text-secondary font-semibold">
-            Coleção completa
-          </span>
-          <h2 className="font-display italic text-3xl md:text-5xl font-medium text-foreground mt-3 mb-4">
-            Peças à espera de você
-          </h2>
-          <div className="w-16 h-px bg-secondary/50 mx-auto mb-4" />
-          <p className="font-body text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
-            Navegue, monte sua sacola com quantas peças quiser e finalize tudo em uma só conversa no WhatsApp.
-          </p>
-        </div>
-
-        <div className="mb-8">
+      <section id="catalog" className="bg-background px-6 md:px-10 py-24 md:py-32">
+        <div className="max-w-6xl mx-auto">
           <FiltersBar
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
@@ -107,90 +129,94 @@ export default function Index() {
             onStatusChange={setSelectedStatus}
             showSoldItems={showSoldItems}
             onShowSoldChange={setShowSoldItems}
+            availableCategories={availableCategories}
+            availableSizes={availableSizes}
           />
-        </div>
 
-        <div className="mb-6">
-          <p className="font-body text-muted-foreground">
-            {filteredProducts.length === 0
-              ? 'Nenhuma peça encontrada com os filtros selecionados'
-              : `${filteredProducts.length} ${filteredProducts.length === 1 ? 'peça encontrada' : 'peças encontradas'}`}
-          </p>
-        </div>
+          <div className="mb-10 flex items-center justify-between font-body text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
+            <span>
+              {loading
+                ? 'Carregando acervo…'
+                : filteredProducts.length === 0
+                ? 'Nenhuma peça encontrada'
+                : `${filteredProducts.length} ${
+                    filteredProducts.length === 1 ? 'peça' : 'peças'
+                  } no acervo`}
+            </span>
+          </div>
 
-        {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="bg-card rounded-2xl p-4 space-y-4 animate-pulse">
-                <div className="aspect-[3/4] bg-muted rounded-xl" />
-                <div className="space-y-2">
-                  <div className="h-4 bg-muted rounded" />
-                  <div className="h-4 bg-muted rounded w-2/3" />
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-24">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="animate-pulse">
+                  <div className="aspect-[3/4] bg-muted" />
+                  <div className="mt-6 space-y-3">
+                    <div className="h-6 bg-muted w-2/3" />
+                    <div className="h-3 bg-muted w-1/3" />
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        ) : error ? (
-          <div className="text-center py-16">
-            <div className="max-w-md mx-auto">
-              <div className="mb-6"><span className="text-6xl">⚠️</span></div>
-              <h3 className="font-display text-xl font-medium text-foreground mb-2">Ops! Erro ao carregar produtos</h3>
-              <p className="font-body text-muted-foreground mb-6">{error}. Tente recarregar a página.</p>
+              ))}
             </div>
-          </div>
-        ) : filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {filteredProducts.map((product) => (
-              <ProductCard key={product.codigo} product={product} />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-16">
-            <div className="max-w-md mx-auto">
-              <div className="mb-6"><span className="text-6xl">🤍</span></div>
-              <h3 className="font-display text-xl font-medium text-foreground mb-2">Nenhuma peça encontrada</h3>
-              <p className="font-body text-muted-foreground mb-6">
-                Tente ajustar os filtros ou fazer uma nova busca. Sempre temos novidades chegando!
+          ) : error ? (
+            <div className="text-center py-24 border-t border-b border-foreground/10">
+              <h3 className="font-display italic text-3xl text-foreground mb-4">
+                Não foi possível carregar o acervo
+              </h3>
+              <p className="font-body text-sm text-muted-foreground">
+                {error}. Recarregue a página para tentar novamente.
               </p>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setSearchQuery('');
-                  setSelectedCategory('all');
-                  setSelectedSize('all');
-                  setSelectedStatus('all');
-                  setShowSoldItems(true);
-                }}
-                className="font-body"
+            </div>
+          ) : filteredProducts.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-24">
+              {filteredProducts.map((product) => (
+                <ProductCard key={product.codigo} product={product} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-24 border-t border-b border-foreground/10">
+              <h3 className="font-display italic text-3xl text-foreground mb-4">
+                Nada encontrado por aqui
+              </h3>
+              <p className="font-body text-sm text-muted-foreground mb-8 max-w-md mx-auto">
+                Ajuste os filtros ou tente outra busca — novas peças chegam sempre.
+              </p>
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="font-body text-[10px] uppercase tracking-[0.3em] border-b border-secondary text-foreground pb-1 hover:text-secondary transition-colors"
               >
                 Limpar filtros
-              </Button>
+              </button>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Footer CTA */}
-        <section className="mt-20 text-center bg-gradient-warm rounded-3xl p-12">
-          <h2 className="font-display italic text-2xl md:text-4xl font-medium text-foreground mb-4">
-            Procurando algo especial para um look?
-          </h2>
-          <p className="font-body text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Chama a gente no WhatsApp 💌 — ajudamos você a encontrar a peça certa para o seu momento.
-          </p>
-          <Button
-            size="lg"
-            onClick={() => {
-              const message = encodeURIComponent('Oi! Estou procurando uma peça especial. Vocês podem me ajudar? 🤍');
-              const waNumber = import.meta.env.VITE_WA_NUMBER || '5541995299244';
-              trackWhatsAppClick();
-              window.open(`https://wa.me/${waNumber}?text=${message}`, '_blank');
-            }}
-            className="bg-accent hover:bg-accent/90 text-accent-foreground font-body font-medium shadow-hover transition-bounce"
-          >
-            Conversar no WhatsApp 💬
-          </Button>
-        </section>
-      </main>
+          {/* Editorial closing CTA */}
+          <div className="mt-32 border-t border-foreground/10 pt-20 flex flex-col items-center text-center">
+            <p className="font-body text-[10px] uppercase tracking-[0.5em] text-muted-foreground mb-6">
+              Atendimento pessoal
+            </p>
+            <h2 className="font-display italic text-3xl md:text-5xl text-foreground max-w-2xl leading-tight mb-4">
+              Procurando algo especial para um look?
+            </h2>
+            <p className="font-body text-base text-muted-foreground max-w-xl mb-10">
+              Chame a gente no WhatsApp — ajudamos você a encontrar a peça certa para o seu momento.
+            </p>
+            <button
+              type="button"
+              onClick={openConciergeWhatsApp}
+              className="group flex flex-col items-center gap-4"
+              aria-label="Conversar no WhatsApp"
+            >
+              <span className="font-body text-[11px] uppercase tracking-[0.5em] text-foreground group-hover:text-secondary transition-colors">
+                Conversar no WhatsApp
+              </span>
+              <span className="w-px h-16 bg-foreground/20 relative overflow-hidden">
+                <span className="absolute inset-0 bg-secondary -translate-y-full group-hover:translate-y-0 transition-transform duration-700" />
+              </span>
+            </button>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
