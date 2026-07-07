@@ -178,4 +178,31 @@ All colors MUST be HSL.
   .transition-bounce {
     transition: var(--transition-bounce);
   }
+
+  /* Cinematic scroll utilities */
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    animation: revealUp 1s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+  }
+
+  @keyframes revealUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes scroll-light {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(200%); }
+  }
+  .animate-scroll-light {
+    animation: scroll-light 2.4s ease-in-out infinite;
+  }
+
+  @keyframes kenburns {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.08); }
+  }
 }
