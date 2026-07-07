@@ -1,20 +1,23 @@
 ## Problema
-Entre a `HorizontalCollection` e a seção `#catalog` há um espaço vertical grande porque as duas seções aplicam `py-24 md:py-32` — os paddings inferior e superior se somam (~192px no mobile, ~256px no desktop).
 
-## Alteração
-Apenas presentational, sem tocar em lógica.
+A seção "Panorama" (`HorizontalCollection`) renderiza o cabeçalho ("PANORAMA" / "VER CATÁLOGO"), mas a área dos cards fica em branco.
 
-1. **`src/components/home/HorizontalCollection.tsx` (linha 66)**  
-   Trocar `py-24 md:py-32` por `pt-24 md:pt-32 pb-0` — mantém respiração no topo e zera o padding inferior.
+**Causa raiz:** cada card é envolvido em uma `div` com classe `opacity-0`, e só se torna visível quando um `IntersectionObserver` dispara uma animação do `anime.js`. Se o observer não dispara (seção já visível ao carregar sem cruzar o threshold de 0.2, animação falha silenciosamente, ou o navegador atrasa o callback), os cards permanecem invisíveis — a seção fica em branco.
 
-2. **`src/pages/Index.tsx` (seção `#catalog`, linha ~119)**  
-   Trocar `py-24 md:py-32` por `pt-16 md:pt-20 pb-24 md:pb-32` — o filtro passa a começar logo depois do divisor da coleção horizontal, com apenas um respiro leve.
+Isso é frágil: a visibilidade do conteúdo depende 100% de JS externo funcionar.
 
-Resultado: um único intervalo controlado (~64–80px) entre as duas seções, mantendo o padding inferior do catálogo intacto.
+## Correção
 
-## Fora de escopo
-Ajustes em outras seções, tokens, tipografia, hero, cards ou animações.
+Arquivo: `src/components/home/HorizontalCollection.tsx`
+
+1. Remover `opacity-0` do wrapper dos cards — cards ficam visíveis por padrão. A animação vira melhoria progressiva.
+2. Simplificar o efeito: em vez de esconder e revelar via `IntersectionObserver` + `anime.js`, aplicar uma animação leve de entrada (fade + slide curto) só quando a seção entra na viewport, sem depender dela para exibir o conteúdo. Se algo falhar, os cards continuam visíveis.
+3. Manter `anime.js` como enhancement — se não animar, sem prejuízo visual.
+
+Nenhuma outra seção, layout, espaçamento, tipografia ou token é alterada. Escopo isolado ao `HorizontalCollection`.
 
 ## Verificação
-- `bunx tsgo --noEmit`.
-- Playwright screenshots em 390px e 1280px focadas na transição HorizontalCollection → #catalog.
+
+- `bunx tsgo --noEmit`
+- Playwright: abrir `/`, rolar até a seção Panorama, screenshot em 1280px e 390px confirmando cards visíveis.
+- Checar console: sem erros de animejs.
