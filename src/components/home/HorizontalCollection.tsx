@@ -15,24 +15,30 @@ export function HorizontalCollection({ products }: Props) {
 
   useEffect(() => {
     if (!rootRef.current) return;
+    const cards = rootRef.current.querySelectorAll('.anime-card');
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && !triggered.current && rootRef.current) {
+        if (entries[0].isIntersecting && !triggered.current) {
           triggered.current = true;
-          animate(rootRef.current.querySelectorAll('.anime-card'), {
-            translateY: [-120, 0],
-            opacity: [0, 1],
-            delay: stagger(120),
-            duration: 900,
-            easing: 'easeOutElastic(1, .6)',
-          });
+          try {
+            animate(cards, {
+              translateY: [40, 0],
+              opacity: [0, 1],
+              delay: stagger(90),
+              duration: 700,
+              easing: 'easeOutCubic',
+            });
+          } catch {
+            // Enhancement only — cards remain visible if animation fails.
+          }
         }
       },
-      { threshold: 0.2 }
+      { threshold: 0.1 }
     );
     observer.observe(rootRef.current);
     return () => observer.disconnect();
   }, []);
+
 
   useEffect(() => {
     const container = scrollRef.current;
