@@ -31,7 +31,7 @@ export function MinimalProductCard({ product }: Props) {
       onMouseEnter={(e) => setReveal(e.clientX, e.clientY)}
       onMouseLeave={() => setActive(false)}
       onTouchStart={(e) => setReveal(e.touches[0].clientX, e.touches[0].clientY)}
-      className="group relative block w-full h-full bg-transparent overflow-hidden border border-border/50 hover:border-secondary/60 transition-colors duration-700"
+      className="group relative block w-full h-full"
     >
       <div className="relative aspect-[3/4] w-full overflow-hidden bg-muted">
         {imageUrl && (
@@ -59,40 +59,37 @@ export function MinimalProductCard({ product }: Props) {
           </div>
         )}
 
-        <div className="absolute inset-0 bg-gradient-to-t from-warm-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+        <div className="absolute inset-0 bg-foreground/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
         <div
-          className={`absolute bottom-6 left-1/2 -translate-x-1/2 transition-all duration-700 z-30 ${
+          className={`absolute bottom-6 left-1/2 -translate-x-1/2 transition-all duration-500 z-30 ${
             active
               ? 'translate-y-0 opacity-100'
-              : 'translate-y-8 opacity-0 group-hover:translate-y-0 group-hover:opacity-100'
+              : 'translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100'
           }`}
         >
           <Link
             to={`/p/${product.codigo}`}
-            className="block bg-background/90 backdrop-blur-md text-foreground text-[10px] uppercase tracking-[0.3em] font-body font-semibold py-3 px-8 rounded-full border border-border whitespace-nowrap shadow-hover hover:bg-secondary hover:text-secondary-foreground transition-colors duration-300"
+            className="block bg-background text-foreground text-[10px] uppercase tracking-[0.3em] font-body font-medium py-3 px-8 whitespace-nowrap hover:bg-foreground hover:text-background transition-colors duration-300"
           >
             Ver peça
           </Link>
         </div>
       </div>
 
-      <div className="flex flex-col items-center text-center p-4 sm:p-6 bg-transparent relative z-20">
-        <span className="text-[9px] text-secondary uppercase tracking-[0.4em] mb-2 font-body font-semibold">
-          {product.categoria}
-        </span>
-        <h4 className="font-display italic text-base sm:text-lg text-foreground mb-2 line-clamp-2 tracking-wide">
-          {product.nome}
-        </h4>
-        <span className="font-body text-sm tracking-[0.15em] text-foreground/80 group-hover:text-secondary transition-colors duration-500">
+      <div className="mt-6 space-y-2 relative z-20">
+        <div className="flex justify-between items-baseline gap-3">
+          <h4 className="font-display italic text-xl text-foreground truncate">
+            {product.nome}
+          </h4>
+          <span className="font-body text-[10px] uppercase tracking-[0.2em] text-muted-foreground shrink-0">
+            {product.codigo}
+          </span>
+        </div>
+        <p className="font-body text-[11px] uppercase tracking-[0.2em] text-secondary font-medium">
           {formatPrice(product.preco_brl)}
-        </span>
+        </p>
       </div>
-
-      <div className="absolute top-0 left-0 w-8 h-[1px] bg-secondary/50 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-      <div className="absolute top-0 left-0 w-[1px] h-8 bg-secondary/50 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-      <div className="absolute top-0 right-0 w-8 h-[1px] bg-secondary/50 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-      <div className="absolute top-0 right-0 w-[1px] h-8 bg-secondary/50 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
     </div>
   );
 }

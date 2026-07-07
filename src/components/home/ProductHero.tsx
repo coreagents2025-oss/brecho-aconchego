@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Eye } from 'lucide-react';
 import { Product } from '@/types/product';
 import { AddToCartButton } from '@/components/AddToCartButton';
 import { StatusBadge } from '@/components/StatusBadge';
@@ -60,7 +59,7 @@ export function ProductHero({ product, reversed = false }: Props) {
   }, []);
 
   return (
-    <div ref={sectionRef} className="relative h-auto md:h-[250vh] w-full group bg-background">
+    <div ref={sectionRef} className="relative h-auto md:h-[200vh] w-full group bg-background">
       <div className="relative md:sticky md:top-0 w-full h-auto md:h-screen overflow-hidden">
         <div className="w-full h-auto md:h-full grid grid-cols-1 md:grid-cols-2">
           <div
@@ -68,7 +67,7 @@ export function ProductHero({ product, reversed = false }: Props) {
               reversed ? 'md:order-2' : ''
             }`}
           >
-            <div className="relative w-full aspect-[4/5] md:aspect-auto md:h-full overflow-hidden rounded-2xl md:rounded-none bg-muted">
+            <div className="relative w-full aspect-[4/5] md:aspect-auto md:h-full overflow-hidden bg-muted">
               {imageUrl && (
                 <img
                   src={imageUrl}
@@ -90,50 +89,50 @@ export function ProductHero({ product, reversed = false }: Props) {
                   />
                 )}
               </div>
-              <div className="absolute top-4 left-4 z-10">
+              <div className="absolute top-4 right-4 z-10">
                 <StatusBadge status={product.status} />
               </div>
             </div>
           </div>
 
           <div
-            className={`flex items-center justify-center py-8 px-6 md:p-12 relative z-10 ${
-              reversed ? 'md:order-1' : ''
+            className={`flex items-center justify-center py-12 px-6 md:p-12 relative z-10 bg-muted md:border-l md:border-foreground/5 ${
+              reversed ? 'md:order-1 md:border-l-0 md:border-r md:border-foreground/5' : ''
             }`}
           >
             <div className="max-w-md w-full flex flex-col gap-8 md:gap-10">
               <div
-                className="reveal-step transition-all duration-1000 ease-out opacity-0 translate-y-10 [&.active]:opacity-100 [&.active]:translate-y-0"
-                data-progress="0.15"
+                className="reveal-step transition-all duration-1000 ease-out opacity-0 translate-y-6 [&.active]:opacity-100 [&.active]:translate-y-0"
+                data-progress="0"
               >
-                <span className="block text-[10px] text-secondary uppercase tracking-[0.4em] font-body font-semibold mb-3">
+                <span className="block text-[10px] text-muted-foreground uppercase tracking-[0.4em] font-body font-medium mb-4">
                   {product.categoria} · {product.tamanho}
                 </span>
-                <h2 className="font-display italic text-3xl md:text-5xl font-medium text-foreground leading-tight mb-3">
+                <h2 className="font-display italic text-3xl md:text-5xl font-medium text-foreground leading-tight mb-4">
                   {product.nome}
                 </h2>
-                <div className="font-display text-2xl md:text-3xl text-foreground">
+                <div className="font-body text-[13px] uppercase tracking-[0.2em] text-secondary font-medium">
                   {formatPrice(product.preco_brl)}
                 </div>
               </div>
 
               <div
-                className="reveal-step transition-all duration-1000 ease-out opacity-0 translate-y-10 [&.active]:opacity-100 [&.active]:translate-y-0"
-                data-progress="0.35"
+                className="reveal-step transition-all duration-1000 ease-out opacity-0 translate-y-6 [&.active]:opacity-100 [&.active]:translate-y-0"
+                data-progress="0.05"
               >
-                <p className="font-body text-sm md:text-base leading-relaxed text-muted-foreground pt-6 border-t border-border">
+                <p className="font-body text-sm md:text-base leading-relaxed text-muted-foreground pt-6 border-t border-foreground/10">
                   {product.descricao}
                 </p>
               </div>
 
               {(product.marca || product.tecido || product.cor) && (
                 <div
-                  className="reveal-step grid grid-cols-2 gap-6 transition-all duration-1000 ease-out opacity-0 translate-y-10 [&.active]:opacity-100 [&.active]:translate-y-0"
-                  data-progress="0.55"
+                  className="reveal-step grid grid-cols-2 gap-6 transition-all duration-1000 ease-out opacity-0 translate-y-6 [&.active]:opacity-100 [&.active]:translate-y-0"
+                  data-progress="0.1"
                 >
                   {product.marca && (
                     <div>
-                      <span className="block text-[10px] text-muted-foreground uppercase mb-2 tracking-[0.2em] font-body">
+                      <span className="block text-[10px] text-muted-foreground uppercase mb-2 tracking-[0.3em] font-body">
                         Marca
                       </span>
                       <span className="font-body text-sm text-foreground">{product.marca}</span>
@@ -141,7 +140,7 @@ export function ProductHero({ product, reversed = false }: Props) {
                   )}
                   {product.cor && (
                     <div>
-                      <span className="block text-[10px] text-muted-foreground uppercase mb-2 tracking-[0.2em] font-body">
+                      <span className="block text-[10px] text-muted-foreground uppercase mb-2 tracking-[0.3em] font-body">
                         Cor
                       </span>
                       <span className="font-body text-sm text-foreground">{product.cor}</span>
@@ -149,7 +148,7 @@ export function ProductHero({ product, reversed = false }: Props) {
                   )}
                   {product.tecido && (
                     <div className="col-span-2">
-                      <span className="block text-[10px] text-muted-foreground uppercase mb-2 tracking-[0.2em] font-body">
+                      <span className="block text-[10px] text-muted-foreground uppercase mb-2 tracking-[0.3em] font-body">
                         Tecido
                       </span>
                       <span className="font-body text-sm text-foreground">{product.tecido}</span>
@@ -159,16 +158,21 @@ export function ProductHero({ product, reversed = false }: Props) {
               )}
 
               <div
-                className="reveal-step space-y-3 pt-4 transition-all duration-1000 ease-out opacity-0 translate-y-10 [&.active]:opacity-100 [&.active]:translate-y-0"
-                data-progress="0.75"
+                className="reveal-step flex flex-col sm:flex-row gap-3 pt-4 transition-all duration-1000 ease-out opacity-0 translate-y-6 [&.active]:opacity-100 [&.active]:translate-y-0"
+                data-progress="0.15"
               >
-                <Link to={`/p/${product.codigo}`} className="block">
-                  <button className="w-full h-14 bg-foreground text-background hover:bg-foreground/90 font-body text-xs font-semibold uppercase flex items-center justify-center gap-3 rounded-full transition-colors tracking-[0.3em]">
+                <Link to={`/p/${product.codigo}`} className="flex-1">
+                  <button
+                    type="button"
+                    className="w-full py-4 border border-foreground/20 text-foreground font-body text-[10px] uppercase tracking-[0.3em] font-medium hover:bg-foreground hover:text-background hover:border-foreground transition-colors duration-300"
+                  >
                     Ver peça
-                    <Eye className="w-4 h-4" />
                   </button>
                 </Link>
-                <AddToCartButton product={product} size="lg" className="h-14 rounded-full" />
+                <AddToCartButton
+                  product={product}
+                  className="flex-1 h-auto py-4 rounded-none bg-foreground text-background border border-foreground text-[10px] uppercase tracking-[0.3em] font-body font-medium hover:bg-background hover:text-foreground"
+                />
               </div>
             </div>
           </div>

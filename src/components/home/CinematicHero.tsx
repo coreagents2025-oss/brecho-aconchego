@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
 import type { Banner } from '@/hooks/useBanners';
 import heroBoutique from '@/assets/hero-boutique.jpg';
 
@@ -73,22 +72,21 @@ export function CinematicHero({ banners }: Props) {
           </p>
         </div>
 
-        <div className="mt-8 flex flex-wrap gap-3 justify-center reveal" style={{ animationDelay: '1s' }}>
-          <Button
-            size="lg"
+        <div className="mt-10 flex flex-wrap gap-4 justify-center reveal" style={{ animationDelay: '1s' }}>
+          <button
+            type="button"
             onClick={scrollToFeatured}
-            className="bg-secondary hover:bg-secondary/90 text-secondary-foreground font-body font-medium shadow-hover transition-bounce rounded-full px-8"
+            className="bg-foreground text-background border border-foreground py-4 px-10 font-body text-[10px] uppercase tracking-[0.4em] font-medium hover:bg-background hover:text-foreground transition-colors duration-300"
           >
-            Ver destaques ✨
-          </Button>
-          <Button
-            size="lg"
-            variant="outline"
+            Ver destaques
+          </button>
+          <button
+            type="button"
             onClick={() => document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' })}
-            className="bg-white/60 backdrop-blur-sm border-foreground/20 text-foreground hover:bg-white font-body font-medium rounded-full px-8"
+            className="bg-background/40 backdrop-blur-sm border border-foreground/30 text-foreground py-4 px-10 font-body text-[10px] uppercase tracking-[0.4em] font-medium hover:bg-foreground hover:text-background hover:border-foreground transition-colors duration-300"
           >
             Catálogo completo
-          </Button>
+          </button>
         </div>
       </div>
 

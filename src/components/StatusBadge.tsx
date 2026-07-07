@@ -6,36 +6,33 @@ interface StatusBadgeProps {
   className?: string;
 }
 
-const statusConfig = {
+const statusConfig: Record<ProductStatus, { label: string; className: string }> = {
   'Disponível': {
     label: 'Disponível',
-    className: 'bg-available text-white',
-    icon: '✨'
+    className: 'bg-background/85 backdrop-blur-sm text-foreground',
   },
   'Reservado': {
-    label: 'Reservado com carinho',
-    className: 'bg-reserved text-white',
-    icon: '🤍'
+    label: 'Reservado',
+    className: 'bg-secondary text-secondary-foreground',
   },
   'Vendido': {
     label: 'Novo lar encontrado',
-    className: 'bg-sold text-white',
-    icon: '💛'
-  }
+    className: 'bg-foreground/70 backdrop-blur-sm text-background',
+  },
 };
 
 export function StatusBadge({ status, className }: StatusBadgeProps) {
   const config = statusConfig[status];
-  
+
   return (
     <span
+      role="status"
       className={cn(
-        'inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium font-body transition-smooth',
+        'inline-flex items-center text-[9px] uppercase tracking-[0.3em] py-1.5 px-3 font-body font-medium',
         config.className,
         className
       )}
     >
-      <span>{config.icon}</span>
       {config.label}
     </span>
   );
